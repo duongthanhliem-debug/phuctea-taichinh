@@ -224,8 +224,15 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
     </div>
     <div style="margin-top:14px">
       <label class="mlabel">3. Anthropic API Key (để dùng AI đọc ảnh)</label>
-      <div class="mdesc">Lấy tại <a href="https://console.anthropic.com" target="_blank" style="color:var(--brown-m)">console.anthropic.com</a> — chỉ dùng cho tính năng nhập liệu từ ảnh</div>
+      <div class="mdesc">Lấy tại <a href="https://console.anthropic.com" target="_blank" style="color:var(--brown-m)">console.anthropic.com</a> — dùng cho AI đọc ảnh. <strong>Nếu đã có Apps Script URL, bỏ qua mục này</strong> (proxy qua Apps Script không bị CORS).</div>
       <input class="minput" id="cfg-apikey" type="password" placeholder="sk-ant-...">
+      <div class="mdesc" style="margin-top:6px;background:var(--gold-l);border-radius:6px;padding:8px;font-size:11px">
+        💡 <strong>Apps Script proxy (khuyên dùng):</strong> Thêm đoạn sau vào Apps Script của bạn để AI đọc ảnh không bị lỗi CORS:<br>
+        <code style="display:block;margin-top:4px;font-family:monospace;font-size:10px;color:var(--brown-m);word-break:break-all">
+        case 'claudeVision': var r=UrlFetchApp.fetch('https://api.anthropic.com/v1/messages',{method:'post',headers:{'x-api-key':e.anthropicPayload?e.apiKey||PropertiesService.getScriptProperties().getProperty('ANTHROPIC_KEY'):'','anthropic-version':'2023-06-01','Content-Type':'application/json'},payload:JSON.stringify(e.anthropicPayload),muteHttpExceptions:true}); return ContentService.createTextOutput(JSON.stringify({result:JSON.parse(r.getContentText()).content[0].text})).setMimeType(ContentService.MimeType.JSON);
+        </code>
+        Hoặc lưu API Key vào Script Properties với tên <code>ANTHROPIC_KEY</code>.
+      </div>
     </div>
     <div id="cfg-err" class="merr"></div>
     <button class="mbtn" onclick="doSetup()">✓ Kết nối & bắt đầu</button>
@@ -459,7 +466,12 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
         <span style="font-size:10px;background:var(--gold);color:var(--brown);padding:2px 8px;border-radius:10px;font-weight:700">BETA</span>
       </div>
       <div class="cb">
-        <p style="font-size:12px;color:var(--gray);margin-bottom:12px;line-height:1.6">Upload ảnh chụp tin nhắn Zalo báo chi. AI sẽ tự động đọc và phân loại giao dịch. Bạn xác nhận trước khi lưu.</p>
+        <div style="font-size:12px;color:var(--gray);margin-bottom:12px;line-height:1.7;background:var(--gray-l);border-radius:var(--rs);padding:10px">
+  📌 <strong>Cách dùng:</strong> Có 2 cách kết nối AI:<br>
+  &nbsp;&nbsp;① Dùng qua <strong>Apps Script URL</strong> (cài ở ⚙️) — không cần nhập API Key riêng<br>
+  &nbsp;&nbsp;② Nhập <strong>Anthropic API Key</strong> vào ⚙️ Cài đặt — gọi trực tiếp<br>
+  Sau đó upload ảnh Zalo → Phân tích → Xác nhận → Lưu.
+</div>
         
         <!-- Drop zone -->
         <div class="img-drop" id="img-drop" onclick="document.getElementById('img-file-input').click()"
@@ -479,6 +491,10 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
         <div class="fg" id="ai-store-row" style="display:none;margin-top:8px">
           <label class="fl">Cửa hàng (áp dụng cho tất cả ảnh)</label>
           <select class="fc" id="ai-store"></select>
+          <div style="margin-top:6px;font-size:11px;color:var(--gray)">
+            Cần API Key hoặc Apps Script URL? → 
+            <span onclick="openSetup()" style="color:var(--gold);cursor:pointer;font-weight:600;text-decoration:underline">⚙️ Mở Cài đặt</span>
+          </div>
         </div>
         
         <!-- Analyze button -->
@@ -1438,26 +1454,30 @@ function removeImg(i){
 async function analyzeImages(){
   const storeId = document.getElementById('ai-store').value;
   if(!storeId){toast('Chọn cửa hàng trước!','terr');return;}
-  if(!C.apiKey && !window._aiKey){
-    // Prompt for API key if not set
-    const k = prompt('Nhập Anthropic API Key để dùng tính năng AI đọc ảnh:\n(Key sẽ chỉ lưu trong phiên này)');
-    if(!k){toast('Cần API Key để phân tích ảnh','terr');return;}
+
+  // Need either: Apps Script URL (proxy mode) or direct API key
+  const hasProxy = !!C.apiUrl;
+  const apiKey = window._aiKey || C.apiKey || '';
+  
+  if(!hasProxy && !apiKey){
+    const k = prompt('Nhập Anthropic API Key để dùng tính năng AI đọc ảnh:\n\nHoặc cài đặt Apps Script URL trong ⚙️ Cài đặt để dùng chế độ proxy (không cần nhập key ở đây).\n\n(Key sẽ chỉ lưu trong phiên này)');
+    if(!k){toast('Cần API Key hoặc Apps Script URL proxy để phân tích ảnh','terr');return;}
     window._aiKey = k.trim();
   }
-  
+
   document.getElementById('btn-analyze').style.display='none';
   document.getElementById('ai-thinking').style.display='flex';
   document.getElementById('ai-results').innerHTML='';
   document.getElementById('ai-confirm-bar').style.display='none';
   aiPendingTx = [];
 
-  const apiKey = window._aiKey || C.apiKey || '';
+  const finalKey = window._aiKey || C.apiKey || '';
 
   for(let i=0;i<aiImageFiles.length;i++){
     document.getElementById('ai-thinking-txt').textContent=`AI đang đọc ảnh ${i+1}/${aiImageFiles.length}...`;
     try{
       const b64 = await fileToBase64(aiImageFiles[i]);
-      const result = await callClaudeVision(b64, aiImageFiles[i].type, apiKey);
+      const result = await callClaudeVision(b64, aiImageFiles[i].type, finalKey);
       const parsed = parseAiResponse(result, storeId);
       aiPendingTx.push(...parsed);
     }catch(err){
@@ -1485,43 +1505,74 @@ function fileToBase64(file){
 }
 
 async function callClaudeVision(b64, mimeType, apiKey){
-  const prompt = `Đây là ảnh chụp tin nhắn Zalo báo cáo chi tiêu của cửa hàng trà sữa Phúc Tea.
+  const AI_PROMPT = `Đây là ảnh chụp tin nhắn Zalo báo cáo chi tiêu của cửa hàng trà sữa Phúc Tea.
 Hãy đọc ảnh và trích xuất TẤT CẢ các khoản chi tiêu có trong ảnh.
 Trả về JSON array, mỗi phần tử có dạng:
-{
-  "description": "mô tả ngắn khoản chi",
-  "amount": số tiền (chỉ số, không đơn vị, ví dụ 50000),
-  "date": "YYYY-MM-DD hoặc để trống nếu không rõ",
-  "reporter": "tên người gửi báo cáo nếu có",
-  "payer": "tên người chi nếu có",
-  "note": "ghi chú thêm nếu có"
-}
-Chỉ trả về JSON array thuần tuý, không có giải thích hay markdown.
-Nếu không tìm thấy khoản chi nào, trả về [].`;
+{"description":"mô tả ngắn khoản chi","amount":50000,"date":"YYYY-MM-DD hoặc rỗng","reporter":"tên người báo cáo nếu có","payer":"tên người chi nếu có","note":"ghi chú thêm"}
+Quy tắc số tiền: 50k=50000, 1tr=1000000, 1.5tr=1500000.
+Chỉ trả về JSON array thuần tuý, không markdown, không giải thích.
+Nếu không có khoản chi nào, trả về [].`;
+
+  const payload = {
+    model:'claude-opus-4-5',
+    max_tokens:2000,
+    messages:[{
+      role:'user',
+      content:[
+        {type:'image',source:{type:'base64',media_type:mimeType,data:b64}},
+        {type:'text',text:AI_PROMPT}
+      ]
+    }]
+  };
+
+  // Strategy 1: If Apps Script URL is configured → use it as CORS-safe proxy
+  if(C.apiUrl){
+    const proxyPayload = {
+      action: 'claudeVision',
+      anthropicPayload: payload,
+      apiKey: apiKey  // Apps Script uses this to call Anthropic server-side
+    };
+    // Apps Script proxy: POST with text/plain to avoid preflight, get response via polling or direct
+    // Since no-cors doesn't return body, we use a different approach:
+    // The Apps Script must be set up to accept claudeVision action and return result
+    // We use mode:'cors' since Apps Script can set CORS headers
+    try{
+      const resp = await fetch(C.apiUrl, {
+        method:'POST',
+        headers:{'Content-Type':'text/plain'},
+        body: JSON.stringify(proxyPayload)
+      });
+      if(resp.ok){
+        const data = await resp.json().catch(()=>null);
+        if(data && data.result) return data.result;
+        if(data && data.error) throw new Error('Apps Script: '+data.error);
+      }
+    }catch(proxyErr){
+      // If proxy fails (e.g. no-cors mode), fall through to direct
+      console.warn('Proxy attempt failed, trying direct:', proxyErr.message);
+    }
+  }
+
+  // Strategy 2: Direct call with anthropic CORS bypass header
+  if(!apiKey) throw new Error('Cần API Key hoặc cấu hình Apps Script URL để dùng tính năng AI đọc ảnh. Vào ⚙️ Cài đặt để nhập.');
 
   const resp = await fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{
       'Content-Type':'application/json',
       'x-api-key': apiKey,
-      'anthropic-version':'2023-06-01'
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
     },
-    body: JSON.stringify({
-      model:'claude-opus-4-5',
-      max_tokens:2000,
-      messages:[{
-        role:'user',
-        content:[
-          {type:'image',source:{type:'base64',media_type:mimeType,data:b64}},
-          {type:'text',text:prompt}
-        ]
-      }]
-    })
+    body: JSON.stringify(payload)
   });
   
   if(!resp.ok){
-    const err = await resp.json().catch(()=>({}));
-    throw new Error(err.error?.message||`API error ${resp.status}`);
+    const errData = await resp.json().catch(()=>({}));
+    const msg = errData.error?.message || `HTTP ${resp.status}`;
+    if(resp.status===401) throw new Error('API Key không hợp lệ. Kiểm tra lại key trong ⚙️ Cài đặt.');
+    if(resp.status===403) throw new Error('API Key bị từ chối quyền truy cập.');
+    throw new Error('Anthropic API: '+msg);
   }
   const data = await resp.json();
   return data.content?.[0]?.text||'[]';
