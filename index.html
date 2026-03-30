@@ -210,8 +210,9 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
 <!-- SETUP MODAL -->
 <div class="overlay" id="setup-modal">
   <div class="modal">
-    <div class="mlogo">🍵 PHÚC TEA</div>
-    <div class="msub">Finance Hub · Cài đặt kết nối</div>
+    <img src="logo4.png" alt="Logo" style="height: 50px; width: auto; object-fit: contain;">
+</div>
+    <div class="msub">P&L Hub · Cài đặt kết nối</div>
     <div style="margin-bottom:14px">
       <label class="mlabel">1. Google Sheet ID</label>
       <div class="mdesc">Lấy từ URL Sheet: <code style="background:#f0f0f0;padding:1px 5px;border-radius:3px;font-size:11px">spreadsheets/d/<b style="color:#e53e3e">ID</b>/edit</code></div>
@@ -455,7 +456,7 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
   <div>
     <div class="card">
       <div class="ch" style="background:linear-gradient(135deg,var(--brown),var(--brown-m))">
-        <div class="ct" style="color:#fff">📸 Nhập từ ảnh (AI)</div>
+        <div class="ct" style="color:#fff"> ⛶ Nhập từ ảnh (AI)</div>
         <span style="font-size:10px;background:var(--gold);color:var(--brown);padding:2px 8px;border-radius:10px;font-weight:700">BETA</span>
       </div>
       <div class="cb">
@@ -469,7 +470,7 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
              ondragleave="this.classList.remove('over')"
              ondrop="handleImgDrop(event)">
           <input type="file" id="img-file-input" accept="image/*" multiple onchange="handleImgSelect(event)">
-          <div style="font-size:32px;margin-bottom:8px">📷</div>
+          <div style="font-size:32px;margin-bottom:8px">⛶</div>
           <div style="font-weight:600;color:var(--brown);margin-bottom:4px">Chọn hoặc kéo thả ảnh vào đây</div>
           <div style="font-size:12px;color:var(--gray)">Hỗ trợ nhiều ảnh cùng lúc · JPG, PNG, WebP</div>
         </div>
@@ -626,15 +627,13 @@ let emailEdits={subject:'',greeting:'',extra:'',sig:'Thanh Liêm — Operation M
 let editingStoreId=null;
 
 const COGS=[
-  'NVL hệ thống','NVL địa phương','Vận chuyển',
-  'Chi phí nguyên vật liệu hệ thống','Chi phí nguyên vật liệu địa phương',
-  'Chi phí vận chuyển','Chi phí Vật phẩm','Vật phẩm','Công nợ'
+  'NVL hệ thống','NVL địa phương','Chi phí vận chuyển','Vật phẩm','Công nợ','Nhập đồ ăn vặt'
 ];
 const CATS={
-  thu:['GrabFood','ShopeeFood','Mang về','Tại chỗ','Giao hàng','Doanh thu vật phẩm','Thu khác'],
-  chi:['NVL hệ thống','NVL địa phương','Vận chuyển','Chi phí nguyên vật liệu hệ thống','Chi phí nguyên vật liệu địa phương','Chi phí vận chuyển','Chi phí Vật phẩm','Công nợ','Lương NV pha chế','Lương quản lý',
-       'Mặt bằng','Tiền điện','Tiền nước','Internet','Gas','Royalty Fee',
-       'Chiết khấu food app','Marketing','Sửa chữa','Thuế','Hao phí','Nước đá','Chi phí khác']
+  thu:['GrabFood','ShopeeFood','Mang về','Tại chỗ','Giao hàng','Doanh thu vật phẩm','Doanh thu đồ ăn','Booking','Call Center','Web Order','Zalo','CSKH','Food app khác','Thu khác'],
+  chi:['NVL hệ thống','NVL địa phương','Chi phí vận chuyển','Vật phẩm','Công nợ','Nhập đồ ăn vặt','Lương NV pha chế','Lương quản lý',
+       'Mặt bằng','Tiền điện','Tiền nước','Internet','Gas','Phí duy trì','Chiết khấu food app','Marketing','Sửa chữa','Thuế','Hao phí','Nước đá',
+       'Nước lọc','Mua hoa','Chiết khấu CTKM','Xăng','Công cụ dụng cụ','Chi phí tài sản cố định','Chi phí in ấn tài liệu','Chi phí tâm linh','Chi phí khác']
 };
 
 // ===== FORMAT =====
