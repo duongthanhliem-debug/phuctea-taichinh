@@ -522,11 +522,15 @@ Tải ảnh chụp màn hình lên → Chọn của hàng → Phân tích với 
 
   <!-- EXCEL REVENUE IMPORT - full width below -->
   <div style="max-width:1400px;margin:0 auto">
-    <div class="card" style="margin-top:0">
-      <div class="ch" style="background:linear-gradient(135deg,#1a6b3c,#2D8248)">
-        <div class="ct" style="color:#fff">📊 Nhập doanh thu từ file Excel (phần mềm bán hàng)</div>
-        <span style="font-size:10px;background:var(--gold);color:var(--brown);padding:2px 8px;border-radius:10px;font-weight:700">EXCEL → TỰ ĐỘNG</span>
-      </div>
+    <div class="card" style="border-top:4px solid var(--blue); margin-top:15px; padding: 12px;">
+    <h3 style="margin-bottom:5px; font-size:16px;">📊 Nhập doanh thu Excel</h3>
+    <p style="font-size:11px; color:#666; margin-bottom:8px;">Tự động phân tích cột <b>Ngày</b> và <b>Số tiền</b> từ file.</p>
+    
+    <div style="display: flex; gap: 8px; align-items: center;">
+        <input type="file" id="excelFile" accept=".xlsx, .xls" style="font-size:12px; flex: 1;">
+        <button class="btn btn-blue" onclick="handleExcel()" style="padding: 6px 12px; white-space: nowrap; font-size: 13px;">Phân tích</button>
+    </div>
+</div>
       <div class="cb">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
           <!-- LEFT: Upload + info -->
