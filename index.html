@@ -520,47 +520,56 @@ Tải ảnh chụp màn hình lên → Chọn của hàng → Phân tích với 
   </div><!-- end RIGHT -->
   </div><!-- end input-grid -->
 
-  <div class="card" style="margin-top:20px;">
-  <div class="ch" style="background:linear-gradient(135deg,#1a6b3c,#2D8248)">
-    <div class="ct" style="color:#fff">📊 Nhập doanh thu từ file Excel (phần mềm bán hàng)</div>
-    <span style="font-size:10px;background:var(--gold);color:var(--brown);padding:2px 8px;border-radius:10px;font-weight:700">EXCEL → TỰ ĐỘNG</span>
-  </div>
-  <div class="cb">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
-      <div>
-        <div style="font-size:12px;color:var(--gray);background:var(--gray-l);border-radius:var(--rs);padding:10px;margin-bottom:12px;line-height:1.7">
-          📌 <strong>Quy trình:</strong> Upload file Excel → AI tự phân tích từng sheet (= 1 cửa hàng) → Tách doanh thu Gross theo nguồn đơn + chiết khấu → Hiển thị để xác nhận → Lưu vào Sheets.
-        </div>
-        <div class="img-drop" id="xlsx-drop" 
-             onclick="document.getElementById('xlsx-file-input').click()"
-             ondragover="event.preventDefault();this.classList.add('over')"
-             ondragleave="this.classList.remove('over')"
-             ondrop="handleXlsxDrop(event)"
-             style="border-color:var(--green);padding:24px">
-          <input type="file" id="xlsx-file-input" accept=".xlsx,.xls,.csv" onchange="handleXlsxSelect(event)">
-          <div style="font-size:32px;margin-bottom:8px">📊</div>
-          <div style="font-weight:600;color:var(--brown);margin-bottom:4px">Chọn hoặc kéo thả file Excel vào đây</div>
-          <div style="font-size:12px;color:var(--gray)">.xlsx · .xls · .csv — nhiều sheet = nhiều cửa hàng</div>
-        </div>
-        <div id="xlsx-file-info" style="display:none;margin-top:8px;font-size:12px;padding:8px;background:var(--green-l);border-radius:var(--rs);color:var(--green);font-weight:600"></div>
-        
-        <button class="btn" id="btn-xlsx-analyze" style="width:100%;margin-top:10px;display:none;background:var(--green);color:#fff;padding:12px" onclick="analyzeXlsx()">
-          🤖 Phân tích file với AI
-        </button>
-        
-        <div class="ai-thinking" id="xlsx-thinking" style="display:none">
-          <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-          <span id="xlsx-thinking-txt">Đang đọc file Excel...</span>
-        </div>
+<!-- EXCEL REVENUE IMPORT - full width below -->
+  <div style="max-width:800px;margin:0 auto">
+    <div class="card" style="margin-top:0">
+      <div class="ch" style="background:linear-gradient(135deg,#1a6b3c,#2D8248)">
+        <div class="ct" style="color:#fff">📊 Nhập doanh thu từ file Excel (phần mềm bán hàng)</div>
+        <span style="font-size:10px;background:var(--gold);color:var(--brown);padding:2px 8px;border-radius:10px;font-weight:700">EXCEL → TỰ ĐỘNG</span>
       </div>
-      
-      <div>
-        <div id="xlsx-results" style="max-height:500px;overflow-y:auto"></div>
-        <div id="xlsx-confirm-bar" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-          <div style="font-size:12px;color:var(--gray);margin-bottom:8px" id="xlsx-confirm-summary"></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            <button class="btn bo" onclick="clearXlsx()">🗑️ Huỷ</button>
-            <button class="btn" style="background:var(--green);color:#fff" onclick="saveXlsxAll()">✅ Lưu tất cả doanh thu</button>
+      <div class="cb">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+          <!-- LEFT: Upload + info -->
+          <div>
+            <div style="font-size:12px;color:var(--gray);background:var(--gray-l);border-radius:var(--rs);padding:10px;margin-bottom:12px;line-height:1.7">
+              📌 <strong>Quy trình:</strong> Upload file Excel từ phần mềm bán hàng → AI tự phân tích từng sheet (= 1 cửa hàng) → Tách doanh thu Gross theo nguồn đơn + chiết khấu → Hiển thị để xác nhận → Lưu vào Sheets.
+            </div>
+            <!-- Drop zone Excel -->
+            <div class="img-drop" id="xlsx-drop" 
+                 onclick="document.getElementById('xlsx-file-input').click()"
+                 ondragover="event.preventDefault();this.classList.add('over')"
+                 ondragleave="this.classList.remove('over')"
+                 ondrop="handleXlsxDrop(event)"
+                 style="border-color:var(--green);padding:24px">
+              <input type="file" id="xlsx-file-input" accept=".xlsx,.xls,.csv" onchange="handleXlsxSelect(event)">
+              <div style="font-size:32px;margin-bottom:8px">📊</div>
+              <div style="font-weight:600;color:var(--brown);margin-bottom:4px">Chọn hoặc kéo thả file Excel vào đây</div>
+              <div style="font-size:12px;color:var(--gray)">.xlsx · .xls · .csv — nhiều sheet = nhiều cửa hàng</div>
+            </div>
+            <div id="xlsx-file-info" style="display:none;margin-top:8px;font-size:12px;padding:8px;background:var(--green-l);border-radius:var(--rs);color:var(--green);font-weight:600"></div>
+            
+            <!-- Analyze button -->
+            <button class="btn" id="btn-xlsx-analyze" style="width:100%;margin-top:10px;display:none;background:var(--green);color:#fff;padding:12px" onclick="analyzeXlsx()">
+              🤖 Phân tích file với AI
+            </button>
+            
+            <!-- Thinking -->
+            <div class="ai-thinking" id="xlsx-thinking" style="display:none">
+              <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+              <span id="xlsx-thinking-txt">Đang đọc file Excel...</span>
+            </div>
+          </div>
+          
+          <!-- RIGHT: Results + confirm -->
+          <div>
+            <div id="xlsx-results" style="max-height:500px;overflow-y:auto"></div>
+            <div id="xlsx-confirm-bar" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+              <div style="font-size:12px;color:var(--gray);margin-bottom:8px" id="xlsx-confirm-summary"></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <button class="btn bo" onclick="clearXlsx()">🗑️ Huỷ</button>
+                <button class="btn" style="background:var(--green);color:#fff" onclick="saveXlsxAll()">✅ Lưu tất cả doanh thu</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
