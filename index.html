@@ -548,137 +548,177 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
 <!-- ========== EMAIL ========== -->
 <div class="page" id="p-email">
   <div class="ph">
-    <div><div class="pt">Gửi báo cáo Email</div><div class="ps">Số liệu đầy đủ · Phân tích · Đề xuất · Gửi nhiều cùng lúc</div></div>
+    <div>
+      <div class="pt">Gửi báo cáo Email</div>
+      <div class="ps">Có lịch · Có chỉnh sửa · Có đính kèm</div>
+    </div>
     <div class="fb">
-      <button class="btn bp" onclick="genAllDrafts()">📋 Tạo draft tất cả</button>
-      <button class="btn bp" style="background:var(--green)" onclick="sendSelected()">📧 Gửi đã chọn</button>
+      <button class="btn bp" onclick="loadSchedules()">📋 Refresh</button>
     </div>
   </div>
+
   <div class="g2">
-    <!-- LEFT: Config -->
+    <!-- LEFT -->
     <div>
       <div class="card">
         <div class="ch"><div class="ct">Cấu hình email</div></div>
         <div class="cb">
-          <div class="fr">
-            <div class="fg">
-              <label class="fl">Tháng</label>
-              <select class="fc" id="em">
-                <option value="1">T1</option><option value="2" selected>T2</option>
-                <option value="3">T3</option><option value="4">T4</option><option value="5">T5</option>
-                <option value="6">T6</option><option value="7">T7</option><option value="8">T8</option>
-                <option value="9">T9</option><option value="10">T10</option>
-                <option value="11">T11</option><option value="12">T12</option>
-              </select>
-            </div>
-            <div class="fg">
-              <label class="fl">Năm</label>
-              <select class="fc" id="ey"><option value="2026">2026</option><option value="2025">2025</option></select>
-            </div>
+
+          <div class="fg">
+            <label>Email nhận</label>
+            <input id="eto" class="fc">
           </div>
 
           <div class="fg">
-            <label class="fl">Cửa hàng</label>
-            <select class="fc" id="es" onchange="onStoreSelect()"><option value="">-- Chọn cửa hàng --</option></select>
+            <label>Tiêu đề</label>
+            <input id="e-subject" class="fc">
           </div>
 
           <div class="fg">
-            <label class="fl">Email người nhận <span style="font-weight:400;text-transform:none;letter-spacing:0">(có thể sửa)</span></label>
-            <div style="display:flex;gap:8px">
-              <input type="email" class="fc" id="eto" placeholder="email@example.com" style="flex:1">
-              <button class="btn bo" onclick="saveStoreEmail()" title="Lưu email này cho cửa hàng">💾</button>
-            </div>
+            <label>Nội dung</label>
+            <textarea id="e-content" class="fc"></textarea>
           </div>
 
-          <!-- SCHEDULED SEND -->
-          <div class="fg" style="background:var(--gray-l);border-radius:var(--rs);padding:11px;margin-bottom:4px">
-            <label class="fl">⏰ Hẹn giờ gửi email <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray)">(để trống = gửi ngay)</span></label>
-            <div class="fr" style="margin-top:4px">
-              <div>
-                <label class="fl" style="font-size:10px">Ngày gửi</label>
-                <input type="date" class="fc" id="e-send-date" style="font-size:12px">
-              </div>
-              <div>
-                <label class="fl" style="font-size:10px">Giờ gửi</label>
-                <input type="time" class="fc" id="e-send-time" style="font-size:12px">
-              </div>
-            </div>
-            <div id="schedule-info" style="font-size:11px;color:var(--brown-m);margin-top:5px;display:none"></div>
+          <div class="fg">
+            <label>⏰ Ngày & giờ (24h)</label>
+            <input type="date" id="e-date" class="fc">
+            <input type="time" id="e-time" class="fc" step="60">
           </div>
 
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
-            <button class="btn bo" onclick="previewEmail()">🔎 Xem trước</button>
-            <button class="btn bp" onclick="sendOne()">📧 Gửi email</button>
+          <div class="fg">
+            <label>📎 Tệp đính kèm</label>
+            <input type="file" id="e-files" multiple>
           </div>
+
+          <button class="btn bp" onclick="saveSchedule()">📧 Lên lịch gửi</button>
         </div>
       </div>
 
-      <!-- BULK SEND -->
+      <!-- LIST -->
       <div class="card">
-        <div class="ch"><div class="ct">Gửi nhiều cùng lúc</div><button class="btn bg" style="font-size:12px" onclick="checkAll()">Chọn tất cả</button></div>
-        <div id="bulk-list" style="padding:4px 0"></div>
-        <div style="padding:12px 17px;border-top:1px solid var(--border)">
-          <button class="btn bp" style="width:100%" onclick="sendSelected()">📧 Gửi tất cả đã chọn</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- RIGHT: Preview + Edit -->
-    <div>
-      <div class="card">
-        <div class="ch">
-          <div class="ct">Xem trước & Chỉnh sửa email</div>
-          <div style="display:flex;gap:7px">
-            <button class="btn bg" style="font-size:12px" onclick="showPreviewTab('visual')">🔎 Xem</button>
-            <button class="btn bg" style="font-size:12px" onclick="showPreviewTab('edit')">✏️ Sửa</button>
-          </div>
-        </div>
-        <!-- Visual preview -->
-        <div id="tab-visual" style="padding:0">
-          <div id="eprev" style="background:#f0f0f0;padding:14px;min-height:200px;display:flex;align-items:center;justify-content:center">
-            <div style="text-align:center;color:var(--gray)"><div style="font-size:30px;margin-bottom:8px">📧</div>Bấm "Xem trước" để xem email</div>
-          </div>
-        </div>
-        <!-- Edit tab -->
-        <div id="tab-edit" style="display:none;padding:14px">
-          <div class="fg">
-            <label class="fl">Tiêu đề email</label>
-            <input type="text" class="fc" id="e-subject" placeholder="Tiêu đề email...">
-          </div>
-          <div class="fg">
-            <label class="fl">Lời chào mở đầu</label>
-            <input type="text" class="fc" id="e-greeting" placeholder="Kính gửi...">
-          </div>
-          <div class="fg">
-            <label class="fl">Nội dung thêm (tùy chọn)</label>
-            <textarea class="fc" id="e-extra" placeholder="Thêm ghi chú hoặc thông báo đặc biệt..."></textarea>
-          </div>
-          <div class="fg">
-            <label class="fl">Chữ ký</label>
-            <input type="text" class="fc" id="e-sig" value="Thanh Liêm — Operations Manager | 0357 636 539">
-          </div>
-          <button class="btn bp" style="width:100%" onclick="applyEdit()">✓ Áp dụng & Xem trước</button>
-        </div>
+        <div class="ch"><div class="ct">📅 Email đã lên lịch</div></div>
+        <div id="schedule-list" style="padding:10px"></div>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-// ===== STATE =====
-let C={sheetId:'',apiUrl:'',demo:false};
-let TX=[],ST=[],REC=[];
-let emailEdits={subject:'',greeting:'',extra:'',sig:'Thanh Liêm — Operations Manager | 0357 636 539'};
-let editingStoreId=null;
+// ===== STORAGE =====
+function getDB(){
+  return JSON.parse(localStorage.getItem('EMAIL_SCHEDULE')||'[]');
+}
+function setDB(data){
+  localStorage.setItem('EMAIL_SCHEDULE',JSON.stringify(data));
+}
 
-const COGS=[
-  'NVL hệ thống','NVL địa phương','Chi phí vận chuyển','Vật phẩm','Công nợ','Nhập đồ ăn vặt'];
-const CATS={
-  thu:['GrabFood','ShopeeFood','Mang về','Tại chỗ','Giao hàng','Doanh thu vật phẩm','Doanh thu đồ ăn','Booking','Call Center','Web Order','Zalo','CSKH','Food app khác','Thu khác'],
-  chi:['NVL hệ thống','NVL địa phương','Chi phí vận chuyển','Vật phẩm','Công nợ','Nhập đồ ăn vặt','Lương NV pha chế','Lương quản lý',
-       'Mặt bằng','Tiền điện','Tiền nước','Internet','Gas','Phí duy trì','Chiết khấu food app','Marketing','Sửa chữa','Thuế','Hao phí','Nước đá',
-       'Nước lọc','Mua hoa','Chiết khấu CTKM','Xăng','Công cụ dụng cụ','Chi phí tài sản cố định','Chi phí in ấn tài liệu','Chi phí tâm linh','Chi phí khác']};
+// ===== BASE64 =====
+function toBase64(file){
+  return new Promise((res,rej)=>{
+    const reader=new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload=()=>res(reader.result);
+  });
+}
 
+// ===== AUTO P&L (giả lập) =====
+async function getPnL(){
+  return {
+    name:'PnL_demo.pdf',
+    type:'application/pdf',
+    data:'demo-base64'
+  };
+}
+
+// ===== SAVE =====
+async function saveSchedule(){
+  const db = getDB();
+
+  const files = document.getElementById('e-files').files;
+  let attachments=[];
+
+  for(let f of files){
+    attachments.push({
+      name:f.name,
+      type:f.type,
+      data:await toBase64(f)
+    });
+  }
+
+  // auto add P&L
+  attachments.push(await getPnL());
+
+  const date = document.getElementById('e-date').value;
+  const time = document.getElementById('e-time').value;
+
+  const sendAt = date && time ? `${date}T${time}` : null;
+
+  const item = {
+    id: Date.now(),
+    to: document.getElementById('eto').value,
+    subject: document.getElementById('e-subject').value,
+    content: document.getElementById('e-content').value,
+    sendAt,
+    attachments,
+    status:'scheduled'
+  };
+
+  db.push(item);
+  setDB(db);
+
+  alert('Đã lưu lịch');
+  loadSchedules();
+}
+
+// ===== LOAD =====
+function loadSchedules(){
+  const db = getDB();
+  const el = document.getElementById('schedule-list');
+  el.innerHTML='';
+
+  db.forEach(s=>{
+    el.innerHTML+=`
+      <div style="border:1px solid #ddd;padding:10px;margin-bottom:8px">
+        <b>${s.subject}</b><br>
+        ${s.to}<br>
+        ⏰ ${s.sendAt}<br>
+        📎 ${s.attachments.length} file<br>
+        📌 ${s.status}
+        <br><br>
+        <button onclick="edit(${s.id})">✏️</button>
+        <button onclick="removeItem(${s.id})">❌</button>
+      </div>
+    `;
+  });
+}
+
+// ===== DELETE =====
+function removeItem(id){
+  let db = getDB();
+  db = db.filter(x=>x.id!==id);
+  setDB(db);
+  loadSchedules();
+}
+
+// ===== EDIT =====
+function edit(id){
+  const db = getDB();
+  const s = db.find(x=>x.id===id);
+
+  document.getElementById('eto').value = s.to;
+  document.getElementById('e-subject').value = s.subject;
+  document.getElementById('e-content').value = s.content;
+
+  if(s.sendAt){
+    const [d,t]=s.sendAt.split('T');
+    document.getElementById('e-date').value=d;
+    document.getElementById('e-time').value=t;
+  }
+}
+
+// AUTO LOAD
+loadSchedules();
+</script>
 // ===== FORMAT =====
 function fvnd(n){
   if(!n&&n!==0)return'0 ₫';
