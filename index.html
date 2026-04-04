@@ -682,6 +682,50 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
   </div>
 </div>
 
+<!-- ========== SCHEDULED EMAILS ========== -->
+<div class="page" id="p-schedule">
+  <div class="ph">
+    <div><div class="pt">Danh sách email đã lên lịch</div><div class="ps">Xem lại, chỉnh sửa hoặc hủy các email chưa gửi</div></div>
+    <div class="fb">
+      <button class="btn bo" onclick="loadScheduledEmails()">🔄 Làm mới</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch">
+      <div class="ct">Email đang chờ gửi</div>
+      <div style="font-size:12px;color:var(--gray)" id="schedule-count">0 email</div>
+    </div>
+    <div id="schedule-list">
+      <div class="empty2">Đang tải danh sách...</div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT SCHEDULE MODAL -->
+<div class="overlay off" id="edit-schedule-modal">
+  <div class="modal">
+    <div class="mlogo">✏️ Sửa lịch gửi email</div>
+    <div style="height:16px"></div>
+    <div class="fg">
+      <label class="mlabel">Người nhận</label>
+      <input class="minput" id="esched-to" type="email">
+    </div>
+    <div class="fg">
+      <label class="mlabel">Tiêu đề</label>
+      <input class="minput" id="esched-subject">
+    </div>
+    <div class="fr">
+      <div class="fg"><label class="mlabel">Ngày gửi</label><input class="minput" id="esched-date" type="date"></div>
+      <div class="fg"><label class="mlabel">Giờ gửi (24h)</label><input class="minput" id="esched-time" type="time"></div>
+    </div>
+    <input type="hidden" id="esched-id">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+      <button class="mbtn" style="background:var(--gray-l);color:var(--brown);margin-top:0" onclick="closeEditScheduleModal()">Hủy</button>
+      <button class="mbtn" style="margin-top:0" onclick="updateScheduledEmail()">Lưu thay đổi</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ===== STATE =====
 let C={sheetId:'',apiUrl:'',demo:false};
@@ -859,7 +903,8 @@ function agg(month,year){
 // ===== RENDER ALL =====
 function renderAll(){
   fillSels();rDash();rPL();rStores();rBulk();updateApiSt();
-  if(document.getElementById('p-schedule').classList.contains('on')) loadScheduledEmails();
+  const schedPage = document.getElementById('p-schedule');
+  if(schedPage && schedPage.classList.contains('on')) loadScheduledEmails();
 }
 
 function fillSels(){
