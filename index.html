@@ -253,31 +253,34 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
 
 <!-- ========== ĐĂNG KÝ MODAL ========== -->
 <div class="overlay off" id="register-modal">
-  <div class="modal" style="max-width:480px">
+  <div class="modal" style="max-width:560px">
     <div class="mlogo" style="font-size:20px;margin-bottom:4px">📝 Đăng ký tài khoản</div>
-    <div class="msub" style="margin-bottom:18px">Điền đầy đủ thông tin — chờ System duyệt để đăng nhập</div>
+    <div class="msub" style="margin-bottom:14px">Điền đầy đủ thông tin — chờ System duyệt để đăng nhập</div>
 
     <div id="reg-form-wrap">
+      <!-- Hàng 1: Họ tên + SĐT -->
       <div class="fr">
         <div>
           <label class="mlabel">Họ và tên <span style="color:var(--red)">*</span></label>
-          <input class="minput" id="reg-name" placeholder="Nguyễn Văn A" autocomplete="name">
+          <input class="minput" id="reg-name" placeholder="Nguyễn Văn A">
         </div>
         <div>
           <label class="mlabel">Số điện thoại <span style="color:var(--red)">*</span></label>
           <input class="minput" id="reg-phone" type="tel" placeholder="0909 123 456">
         </div>
       </div>
+      <!-- Hàng 2: Email + Ngày sinh -->
       <div class="fr">
         <div>
           <label class="mlabel">Email <span style="color:var(--red)">*</span></label>
-          <input class="minput" id="reg-email" type="email" placeholder="email@phuctea.com.vn">
+          <input class="minput" id="reg-email" type="email" placeholder="email@gmail.com">
         </div>
         <div>
           <label class="mlabel">Ngày sinh <span style="color:var(--red)">*</span></label>
           <input class="minput" id="reg-dob" type="date">
         </div>
       </div>
+      <!-- Hàng 3: Giới tính + Cửa hàng -->
       <div class="fr">
         <div>
           <label class="mlabel">Giới tính <span style="color:var(--red)">*</span></label>
@@ -290,12 +293,46 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
         </div>
         <div>
           <label class="mlabel">Cửa hàng <span style="color:var(--red)">*</span></label>
-          <select class="minput" id="reg-store">
-            <option value="">-- Chọn cửa hàng --</option>
+          <select class="minput" id="reg-store" disabled>
+            <option value="">Đang tải danh sách...</option>
           </select>
         </div>
       </div>
+      <!-- Hàng 4: CCCD -->
+      <div>
+        <label class="mlabel">Số CCCD / CMND <span style="color:var(--red)">*</span></label>
+        <input class="minput" id="reg-cccd" placeholder="012345678901" maxlength="12">
+      </div>
+      <!-- Hàng 5: Ngân hàng + STK -->
       <div class="fr">
+        <div>
+          <label class="mlabel">Tên ngân hàng <span style="color:var(--red)">*</span></label>
+          <input class="minput" id="reg-bank" placeholder="VD: Vietcombank, MB Bank...">
+        </div>
+        <div>
+          <label class="mlabel">Số tài khoản <span style="color:var(--red)">*</span></label>
+          <input class="minput" id="reg-stk" placeholder="Nhập số tài khoản">
+        </div>
+      </div>
+      <!-- Hàng 6: Ảnh CCCD -->
+      <div class="fr" style="margin-top:4px">
+        <div>
+          <label class="mlabel">Ảnh CCCD mặt trước <span style="color:var(--red)">*</span></label>
+          <div style="border:1.5px dashed var(--border);border-radius:var(--rs);padding:10px;text-align:center;cursor:pointer;background:var(--gray-l)" onclick="document.getElementById('reg-cccd-front').click()">
+            <div id="reg-front-preview" style="font-size:11px;color:var(--gray)">📷 Bấm để chọn ảnh</div>
+            <input type="file" id="reg-cccd-front" accept="image/*" style="display:none" onchange="previewCCCD('front',this)">
+          </div>
+        </div>
+        <div>
+          <label class="mlabel">Ảnh CCCD mặt sau <span style="color:var(--red)">*</span></label>
+          <div style="border:1.5px dashed var(--border);border-radius:var(--rs);padding:10px;text-align:center;cursor:pointer;background:var(--gray-l)" onclick="document.getElementById('reg-cccd-back').click()">
+            <div id="reg-back-preview" style="font-size:11px;color:var(--gray)">📷 Bấm để chọn ảnh</div>
+            <input type="file" id="reg-cccd-back" accept="image/*" style="display:none" onchange="previewCCCD('back',this)">
+          </div>
+        </div>
+      </div>
+      <!-- Hàng 7: Mật khẩu -->
+      <div class="fr" style="margin-top:4px">
         <div>
           <label class="mlabel">Mật khẩu <span style="color:var(--red)">*</span></label>
           <input class="minput" id="reg-pass" type="password" placeholder="Tối thiểu 6 ký tự">
@@ -305,7 +342,10 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
           <input class="minput" id="reg-pass2" type="password" placeholder="Nhập lại mật khẩu">
         </div>
       </div>
+
       <div id="reg-err" class="merr"></div>
+      <div id="reg-progress" style="display:none;font-size:12px;color:var(--brown-m);text-align:center;padding:8px;background:var(--gold-l);border-radius:var(--rs);margin-top:8px"></div>
+
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
         <button class="mbtn" style="background:var(--gray-l);color:var(--brown);margin-top:0" onclick="closeRegisterModal()">← Quay lại</button>
         <button class="mbtn" style="margin-top:0" onclick="doRegister()" id="reg-btn">✓ Gửi đăng ký</button>
@@ -314,9 +354,9 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
 
     <div class="msuccess" id="reg-success">
       ✅ Đăng ký thành công!<br>
-      <span style="font-weight:400;font-size:12px">Tài khoản đang chờ duyệt. Bạn sẽ nhận email khi được kích hoạt.</span>
+      <span style="font-weight:400;font-size:12px">Tài khoản đang chờ duyệt. Bạn sẽ nhận email thông báo khi được kích hoạt.</span>
       <br><br>
-      <button class="mbtn" style="margin-top:0;background:var(--brown)" onclick="closeRegisterModal()">← Về trang đăng nhập</button>
+      <button class="mbtn" style="margin-top:8px;background:var(--brown)" onclick="closeRegisterModal()">← Về trang đăng nhập</button>
     </div>
   </div>
 </div>
@@ -895,320 +935,372 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
 
 <script>
 // ============================================================
-// AUTH & CONFIG — v5  (chèn trước các module cũ)
+// AUTH BLOCK v7 — LOGIN / REGISTER / FORGOT / RESET
+// Copy-paste chạy được ngay, không cần sửa tay
 // ============================================================
 
+// !! URL này tự động dùng — không cần sửa nếu đang dùng Ops Center đúng !!
 const OPS_API_URL = 'https://script.google.com/macros/s/AKfycbyxoZKuiTWwwvLe7uFSFFHzOtddDYwr-JG64Qe7eSyGQtavRpEH7-Fy1iGb1BBWmPzfdw/exec';
 
-// ── Session helpers ──────────────────────────────────────────
-function getUser()  { try{ return JSON.parse(localStorage.getItem('pnl_user')||'null'); }catch(e){return null;} }
+// ── SHA-256 (browser native, không cần thư viện) ─────────────
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// ── Gọi Ops Center API ───────────────────────────────────────
+async function callOps(payload) {
+  const res = await fetch(OPS_API_URL, {
+    method : 'POST',
+    mode   : 'cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body   : JSON.stringify(payload)
+  });
+  if (!res.ok) throw new Error('Lỗi mạng: ' + res.status);
+  const data = await res.json();
+  return data;
+}
+
+// ── Session ──────────────────────────────────────────────────
+function getUser()  { try { return JSON.parse(localStorage.getItem('pnl_user')||'null'); } catch(e) { return null; } }
 function saveUser(u){ localStorage.setItem('pnl_user', JSON.stringify(u)); }
 function clearUser(){ localStorage.removeItem('pnl_user'); }
 
-// ── SHA-256 (browser) ────────────────────────────────────────
-async function sha256(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+// ── Rate-limit login thất bại (lưu localStorage) ─────────────
+function checkLoginBlock(email) {
+  const key  = 'login_fail_' + email;
+  const data = JSON.parse(localStorage.getItem(key) || '{"count":0,"lockUntil":0}');
+  if (data.lockUntil && Date.now() < data.lockUntil) {
+    const mins = Math.ceil((data.lockUntil - Date.now()) / 60000);
+    throw new Error(`Tài khoản bị tạm khóa ${mins} phút do nhập sai quá nhiều lần.`);
+  }
+  return data;
+}
+function recordLoginFail(email) {
+  const key  = 'login_fail_' + email;
+  const data = JSON.parse(localStorage.getItem(key) || '{"count":0,"lockUntil":0}');
+  data.count = (data.count || 0) + 1;
+  if (data.count >= 5) { data.lockUntil = Date.now() + 15 * 60 * 1000; data.count = 0; }
+  localStorage.setItem(key, JSON.stringify(data));
+}
+function clearLoginFail(email) {
+  localStorage.removeItem('login_fail_' + email);
 }
 
-// ── LOGIN ────────────────────────────────────────────────────
+// ============================================================
+// ĐĂNG NHẬP
+// ============================================================
 async function doLogin() {
-  const email = (document.getElementById('login-email').value||'').trim().toLowerCase();
-  const pass  = (document.getElementById('login-pass').value||'').trim();
-  const err   = document.getElementById('login-err');
-  const btn   = document.getElementById('login-btn');
-  err.style.display='none';
-  if(!email||!pass){ err.style.display='block'; err.textContent='Vui lòng nhập đầy đủ email và mật khẩu'; return; }
+  const emailRaw = (document.getElementById('login-email').value || '').trim();
+  const pass     = (document.getElementById('login-pass').value  || '').trim();
+  const errEl    = document.getElementById('login-err');
+  const btn      = document.getElementById('login-btn');
 
-  btn.disabled=true; btn.textContent='Đang xác thực...';
+  errEl.style.display = 'none';
+  if (!emailRaw || !pass) {
+    errEl.style.display = 'block';
+    errEl.textContent   = 'Vui lòng nhập đầy đủ email và mật khẩu.';
+    return;
+  }
+
+  const email = emailRaw.toLowerCase();
   try {
-    const hash = await sha256(pass);
-    const res  = await fetch(OPS_API_URL, {
-      method : 'POST',
-      mode   : 'cors',
-      headers: {'Content-Type':'text/plain'},
-      body   : JSON.stringify({ action:'login', email, password:hash })
-    });
-    const data = await res.json();
-    if(!data.success) throw new Error(data.error||'Đăng nhập thất bại');
-    saveUser({ email:data.email, role:data.role, name:data.name, stores:data.stores||[] });
-    document.getElementById('login-modal').classList.add('off');
-    afterLogin(data);
+    checkLoginBlock(email); // Kiểm tra có đang bị khóa không
   } catch(e) {
-    err.style.display='block';
-    err.textContent = e.message.includes('Failed to fetch')
-      ? 'Không kết nối được Ops Center. Kiểm tra mạng.' : e.message;
-  } finally { btn.disabled=false; btn.textContent='→ Đăng nhập'; }
+    errEl.style.display = 'block'; errEl.textContent = e.message; return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Đang xác thực...';
+  try {
+    const passHash = await sha256(pass);
+    const data = await callOps({ action: 'login', email, password: passHash });
+
+    // ── Check response: hỗ trợ cả { status:"success" } lẫn { success:true } ──
+    const ok = data.status === 'success' || data.success === true;
+    if (!ok) {
+      recordLoginFail(email);
+      throw new Error(data.error || data.message || 'Email hoặc mật khẩu không đúng.');
+    }
+
+    // Login thành công → xóa bộ đếm fail
+    clearLoginFail(email);
+
+    // Chuẩn hóa: hỗ trợ cả stores[] và storeCodes string
+    let stores = data.stores || [];
+    if (!stores.length && data.storeCodes) {
+      stores = String(data.storeCodes).split(',').map(s => s.trim()).filter(Boolean);
+    }
+
+    const user = { email, role: data.role || '', name: data.name || email, stores };
+    saveUser(user);
+    document.getElementById('login-modal').classList.add('off');
+    afterLogin(user);
+
+  } catch(e) {
+    errEl.style.display = 'block';
+    errEl.textContent   = e.message.includes('Failed to fetch')
+      ? 'Không kết nối được máy chủ. Kiểm tra mạng và thử lại.' : e.message;
+  } finally {
+    btn.disabled = false; btn.textContent = '→ Đăng nhập';
+  }
 }
 
 // ── LOGOUT ───────────────────────────────────────────────────
 function doLogout() {
-  if(!confirm('Đăng xuất khỏi P&L Hub?')) return;
-  clearUser();
-  location.reload();
+  if (!confirm('Đăng xuất khỏi P&L Hub?')) return;
+  clearUser(); location.reload();
 }
 
-// ── Sau login thành công ─────────────────────────────────────
+// ── SAU LOGIN THÀNH CÔNG ──────────────────────────────────────
 function afterLogin(user) {
-  // Hiện tên user trên nav
   const navUser = document.getElementById('nav-user');
-  if(navUser){ navUser.textContent = user.name + ' · ' + user.role; navUser.style.display='inline'; }
-  document.getElementById('btn-logout').style.display='inline';
-  // System mới thấy nút cài đặt
-  if(user.role && user.role.toLowerCase() !== 'system') {
-    document.getElementById('btn-cfg').style.display='none';
+  if (navUser) { navUser.textContent = (user.name || user.email) + ' · ' + user.role; navUser.style.display = 'inline'; }
+  document.getElementById('btn-logout').style.display = 'inline';
+  if (user.role && user.role.toLowerCase() !== 'system') {
+    document.getElementById('btn-cfg').style.display = 'none';
   }
-  // Load config rồi load data
   loadConfigAndData(user);
 }
 
-// ── Auto-load config từ Ops Center ──────────────────────────
+// ── AUTO-LOAD CONFIG + DATA ───────────────────────────────────
 async function loadConfigAndData(user) {
   load('Đang tải cấu hình...');
   try {
-    const url = OPS_API_URL + '?action=getConfig';
-    const res  = await fetch(url, { mode:'cors' });
-    const json = await res.json();
-    if(json.success && json.config) {
-      const cfg = json.config;
-      if(cfg.PNL_SHEET_ID) {
-        C.sheetId = cfg.PNL_SHEET_ID;
-        document.getElementById('cfg-sid').value = cfg.PNL_SHEET_ID;
-      }
-      if(cfg.OPS_API_URL) {
-        C.apiUrl = cfg.OPS_API_URL;
-        document.getElementById('cfg-api').value = cfg.OPS_API_URL;
-      }
-      if(cfg.API_KEY) {
-        C.apiKey = cfg.API_KEY;
-        window._aiKey = cfg.API_KEY;
-      }
-      save();
+    const json = await callOps({ action: 'getConfig' });
+    // Cũng thử GET nếu POST getConfig chưa hỗ trợ
+    let cfg = (json.success && json.config) ? json.config : {};
+    if (!cfg.PNL_SHEET_ID) {
+      try {
+        const r2 = await fetch(OPS_API_URL + '?action=getConfig', { mode: 'cors' });
+        const j2 = await r2.json();
+        if (j2.success && j2.config) cfg = j2.config;
+      } catch(e2) {}
     }
-  } catch(e) {
-    console.warn('Không load được config tự động:', e.message);
-  }
+    if (cfg.PNL_SHEET_ID) { C.sheetId = cfg.PNL_SHEET_ID; document.getElementById('cfg-sid').value = cfg.PNL_SHEET_ID; }
+    if (cfg.OPS_API_URL)  { C.apiUrl  = cfg.OPS_API_URL;  document.getElementById('cfg-api').value  = cfg.OPS_API_URL; }
+    if (cfg.API_KEY)      { C.apiKey  = cfg.API_KEY; window._aiKey = cfg.API_KEY; }
+    save();
+  } catch(e) { console.warn('Không load config:', e.message); }
 
-  // Disable setup inputs nếu không phải System
-  if(user.role && user.role.toLowerCase() !== 'system') {
-    ['cfg-sid','cfg-api','cfg-apikey'].forEach(id=>{
-      const el=document.getElementById(id);
-      if(el){ el.disabled=true; el.title='Chỉ System mới được chỉnh sửa'; }
+  // Disable setup nếu không phải System
+  if (user.role && user.role.toLowerCase() !== 'system') {
+    ['cfg-sid','cfg-api','cfg-apikey'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.disabled = true; el.title = 'Chỉ System mới được chỉnh sửa'; }
     });
-    const mbtn=document.querySelector('#setup-modal .mbtn');
-    if(mbtn){ mbtn.disabled=true; mbtn.style.opacity='0.4'; mbtn.title='Chỉ System mới được lưu'; }
+    const mbtn = document.querySelector('#setup-modal .mbtn');
+    if (mbtn) { mbtn.disabled = true; mbtn.style.opacity = '0.4'; }
   }
 
-  // Nếu chưa có Sheet ID → báo người dùng
-  if(!C.sheetId) {
+  if (!C.sheetId) {
     unload();
-    if(user.role && user.role.toLowerCase()==='system') {
-      openSetup();
-      toast('Chưa có Sheet ID. Vui lòng cài đặt.','twarn');
-    } else {
-      toast('Chưa có cấu hình Sheet. Liên hệ System Admin.','terr');
-    }
+    if (user.role && user.role.toLowerCase() === 'system') { openSetup(); toast('Chưa có Sheet ID. Vui lòng cài đặt.','twarn'); }
+    else toast('Chưa có cấu hình Sheet. Liên hệ System Admin.','terr');
     return;
   }
 
-  // Load sheets
   load('Đang tải dữ liệu P&L...');
   try {
     await loadSheets(C.sheetId);
     applyStoreFilter(user);
     renderAll();
-    toast('✓ Đăng nhập thành công — ' + user.name, 'tok');
-  } catch(e) { toast('Lỗi tải dữ liệu: '+e.message,'terr'); }
+    toast('✓ Đăng nhập thành công — ' + (user.name || user.email), 'tok');
+  } catch(e) { toast('Lỗi tải dữ liệu: ' + e.message, 'terr'); }
   finally { unload(); }
 }
 
-// ── Filter dữ liệu theo role / stores ───────────────────────
+// ── FILTER STORE THEO ROLE ────────────────────────────────────
 function applyStoreFilter(user) {
-  if(!user) return;
-  const role = (user.role||'').toLowerCase();
-  if(role === 'system') return; // System xem tất cả
+  if (!user) return;
+  const role = (user.role || '').toLowerCase();
+  if (role === 'system') return; // System xem tất cả
 
-  // Admin → chỉ giữ store nằm trong user.stores
-  const allowed = (user.stores||[]).map(s=>s.trim().toUpperCase());
-
-  if(!allowed.length) {
-    // Cho login nhưng không có data
-    ST = [];
-    TX = [];
+  const allowed = (user.stores || []).map(s => s.trim().toUpperCase());
+  if (!allowed.length) {
+    ST = []; TX = [];
     toast('Tài khoản chưa được gán cửa hàng. Liên hệ System Admin.','twarn');
     return;
   }
-
   ST = ST.filter(s => allowed.includes((s.id||'').toUpperCase()));
   TX = TX.filter(t => allowed.includes((t.store||'').toUpperCase()));
 }
 
-// ── Khởi động — dùng window.load để chắc chắn tất cả script đã parse ──
-window.addEventListener('load', () => {
-  const user = getUser();
-  if(user) {
-    document.getElementById('login-modal').classList.add('off');
-    afterLogin(user);
-  } else {
-    // Kiểm tra token reset trong URL
-    const params = new URLSearchParams(window.location.search);
-    const resetToken = params.get('token');
-    if(resetToken) {
-      openResetModal(resetToken);
-    } else {
-      document.getElementById('login-modal').classList.remove('off');
-      document.getElementById('setup-modal').classList.add('off');
-    }
-  }
-  // Init form defaults — gọi sau khi script v4 đã load
-  const tdEl = document.getElementById('td');
-  if(tdEl) tdEl.value = new Date().toISOString().split('T')[0];
-  if(typeof buildCats === 'function') buildCats('thu');
-  const sigEl = document.getElementById('e-sig');
-  if(sigEl && typeof emailEdits !== 'undefined') sigEl.value = emailEdits.sig || '';
-  // KHÔNG load cửa hàng ở đây — sẽ load khi mở modal đăng ký
-});
-
-// ── Load cửa hàng cho dropdown đăng ký ──────────────────────
-async function loadStoresForRegister() {
-  const sel = document.getElementById('reg-store');
-  if(!sel) return;
-
-  // Thêm option loading tạm
-  sel.innerHTML = '<option value="">Đang tải cửa hàng...</option>';
-
+// ── RELOAD (patch lại để áp filter) ──────────────────────────
+async function reload() {
+  if (C.demo) { loadDemo(); renderAll(); return; }
+  if (!C.sheetId) { openSetup(); return; }
+  load('Đang tải từ Sheets...');
   try {
-    // Bước 1: Lấy SheetID từ config (hoặc dùng C.sheetId nếu đã load)
-    let sheetId = (typeof C !== 'undefined' && C.sheetId) ? C.sheetId : '';
-
-    if(!sheetId) {
-      const cfgRes  = await fetch(OPS_API_URL + '?action=getConfig', { mode:'cors' });
-      const cfgJson = await cfgRes.json();
-      sheetId = (cfgJson.config && cfgJson.config.PNL_SHEET_ID) || '';
-    }
-
-    if(!sheetId) throw new Error('Chưa có Sheet ID');
-
-    // Bước 2: Lấy sheet Cửa hàng
-    const sheetRes = await fetch(
-      `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Cửa hàng')}`
-    );
-    if(!sheetRes.ok) throw new Error('Không đọc được sheet');
-
-    const txt  = await sheetRes.text();
-    const rows = txt.split('\n').slice(1);
-
-    sel.innerHTML = '<option value="">-- Chọn cửa hàng --</option>';
-    let count = 0;
-    rows.forEach(line => {
-      if(!line.trim()) return;
-      const cells = line.split(',');
-      const id   = (cells[0]||'').replace(/"/g,'').trim();
-      const name = (cells[1]||'').replace(/"/g,'').trim();
-      if(id && id !== 'ID') {
-        const opt = document.createElement('option');
-        opt.value = id;
-        opt.textContent = name || id;
-        sel.appendChild(opt);
-        count++;
-      }
-    });
-
-    if(count === 0) throw new Error('Không có cửa hàng nào');
-
-  } catch(e) {
-    // Fallback: để user tự nhập
-    sel.innerHTML = '<option value="">-- Không tải được, nhập tay bên dưới --</option>';
-    // Đổi thành input text
-    const parent = sel.parentNode;
-    sel.style.display = 'none';
-    if(!document.getElementById('reg-store-text')) {
-      const inp = document.createElement('input');
-      inp.className = 'minput'; inp.id = 'reg-store-text';
-      inp.placeholder = 'Nhập mã cửa hàng (VD: CENTER001)';
-      inp.style.marginTop = '4px';
-      parent.appendChild(inp);
-    }
-  }
+    await loadSheets(C.sheetId);
+    const user = getUser();
+    if (user) applyStoreFilter(user);
+    renderAll();
+    toast('✓ Cập nhật xong', 'tok');
+  } catch(e) { toast('Lỗi: ' + e.message, 'terr'); }
+  finally { unload(); }
 }
 
 // ============================================================
 // ĐĂNG KÝ TÀI KHOẢN
 // ============================================================
+let _cccdFrontB64 = '';
+let _cccdBackB64  = '';
+
+// Preview ảnh CCCD
+function previewCCCD(side, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const id = side === 'front' ? 'reg-front-preview' : 'reg-back-preview';
+  const reader = new FileReader();
+  reader.onload = e => {
+    if (side === 'front') _cccdFrontB64 = e.target.result;
+    else                  _cccdBackB64  = e.target.result;
+    document.getElementById(id).innerHTML =
+      `<img src="${e.target.result}" style="max-width:100%;max-height:80px;border-radius:4px">`;
+  };
+  reader.readAsDataURL(file);
+}
+
 function openRegisterModal() {
   document.getElementById('login-modal').classList.add('off');
   document.getElementById('register-modal').classList.remove('off');
-  document.getElementById('reg-success').style.display='none';
-  document.getElementById('reg-form-wrap').style.display='block';
-  document.getElementById('reg-err').style.display='none';
-  // Load danh sách cửa hàng nếu chưa có
+  document.getElementById('reg-success').style.display = 'none';
+  document.getElementById('reg-form-wrap').style.display = 'block';
+  document.getElementById('reg-err').style.display = 'none';
+  document.getElementById('reg-progress').style.display = 'none';
+  _cccdFrontB64 = ''; _cccdBackB64 = '';
+  // Load cửa hàng khi mở modal
   const sel = document.getElementById('reg-store');
-  if(sel && sel.options.length <= 1) loadStoresForRegister();
+  if (sel && sel.options.length <= 1) loadStoresForRegister();
 }
 
 function closeRegisterModal() {
   document.getElementById('register-modal').classList.add('off');
   document.getElementById('login-modal').classList.remove('off');
-  // Reset form
-  ['reg-name','reg-phone','reg-email','reg-dob','reg-pass','reg-pass2'].forEach(id=>{
-    const el=document.getElementById(id); if(el) el.value='';
+  ['reg-name','reg-phone','reg-email','reg-dob','reg-pass','reg-pass2','reg-cccd','reg-bank','reg-stk'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
   });
-  document.getElementById('reg-gender').value='';
-  document.getElementById('reg-store').value='';
+  document.getElementById('reg-gender').value = '';
+  document.getElementById('reg-store').value  = '';
+  document.getElementById('reg-front-preview').innerHTML = '📷 Bấm để chọn ảnh';
+  document.getElementById('reg-back-preview').innerHTML  = '📷 Bấm để chọn ảnh';
+  _cccdFrontB64 = ''; _cccdBackB64 = '';
+}
+
+// Load danh sách cửa hàng từ Ops Center (sheet CuaHang)
+async function loadStoresForRegister() {
+  const sel = document.getElementById('reg-store');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Đang tải...</option>';
+  sel.disabled  = true;
+  try {
+    // Lấy danh sách cửa hàng qua Ops API (không cần SheetID phía client)
+    const data = await callOps({ action: 'getStores' });
+    const stores = data.stores || [];
+    sel.innerHTML = '<option value="">-- Chọn cửa hàng --</option>';
+    stores.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value       = s.id || s;
+      opt.textContent = s.name ? s.id + ' — ' + s.name : s.id || s;
+      sel.appendChild(opt);
+    });
+    sel.disabled = false;
+  } catch(e) {
+    sel.innerHTML = '<option value="">Không tải được — thử lại sau</option>';
+    sel.disabled  = false;
+  }
 }
 
 async function doRegister() {
-  const name   = (document.getElementById('reg-name').value||'').trim();
-  const phone  = (document.getElementById('reg-phone').value||'').trim();
-  const email  = (document.getElementById('reg-email').value||'').trim().toLowerCase();
-  const dob    = (document.getElementById('reg-dob').value||'').trim();
-  const gender = document.getElementById('reg-gender').value;
-  const store = document.getElementById('reg-store').value ||
-                (document.getElementById('reg-store-text') ? document.getElementById('reg-store-text').value.trim() : '');
-  const pass   = (document.getElementById('reg-pass').value||'').trim();
-  const pass2  = (document.getElementById('reg-pass2').value||'').trim();
-  const errEl  = document.getElementById('reg-err');
-  const btn    = document.getElementById('reg-btn');
+  const name  = (document.getElementById('reg-name').value  ||'').trim();
+  const phone = (document.getElementById('reg-phone').value ||'').trim();
+  const email = (document.getElementById('reg-email').value ||'').trim().toLowerCase();
+  const dob   = (document.getElementById('reg-dob').value   ||'').trim();
+  const gender= document.getElementById('reg-gender').value;
+  const store = document.getElementById('reg-store').value;
+  const cccd  = (document.getElementById('reg-cccd').value  ||'').trim();
+  const bank  = (document.getElementById('reg-bank').value  ||'').trim();
+  const stk   = (document.getElementById('reg-stk').value   ||'').trim();
+  const pass  = (document.getElementById('reg-pass').value  ||'').trim();
+  const pass2 = (document.getElementById('reg-pass2').value ||'').trim();
+  const errEl = document.getElementById('reg-err');
+  const progEl= document.getElementById('reg-progress');
+  const btn   = document.getElementById('reg-btn');
 
-  errEl.style.display='none';
+  errEl.style.display  = 'none';
+  progEl.style.display = 'none';
 
-  // Validate
-  if(!name||!phone||!email||!dob||!gender||!store||!pass||!pass2) {
-    errEl.style.display='block'; errEl.textContent='Vui lòng điền đầy đủ tất cả thông tin.'; return;
+  // Validate đầy đủ
+  if (!name||!phone||!email||!dob||!gender||!store||!cccd||!bank||!stk||!pass||!pass2) {
+    errEl.style.display = 'block'; errEl.textContent = 'Vui lòng điền đầy đủ tất cả thông tin bắt buộc (*)'; return;
   }
-  if(!/\S+@\S+\.\S+/.test(email)) {
-    errEl.style.display='block'; errEl.textContent='Email không hợp lệ.'; return;
+  if (!/\S+@\S+\.\S+/.test(email)) {
+    errEl.style.display = 'block'; errEl.textContent = 'Email không hợp lệ.'; return;
   }
-  if(pass.length < 6) {
-    errEl.style.display='block'; errEl.textContent='Mật khẩu phải có ít nhất 6 ký tự.'; return;
+  if (pass.length < 6) {
+    errEl.style.display = 'block'; errEl.textContent = 'Mật khẩu phải có ít nhất 6 ký tự.'; return;
   }
-  if(pass !== pass2) {
-    errEl.style.display='block'; errEl.textContent='Hai mật khẩu không trùng nhau.'; return;
+  if (pass !== pass2) {
+    errEl.style.display = 'block'; errEl.textContent = 'Hai mật khẩu không trùng nhau.'; return;
+  }
+  if (!_cccdFrontB64) {
+    errEl.style.display = 'block'; errEl.textContent = 'Vui lòng tải ảnh CCCD mặt trước.'; return;
+  }
+  if (!_cccdBackB64) {
+    errEl.style.display = 'block'; errEl.textContent = 'Vui lòng tải ảnh CCCD mặt sau.'; return;
   }
 
-  btn.disabled=true; btn.textContent='Đang gửi...';
+  btn.disabled = true; btn.textContent = 'Đang gửi...';
+  progEl.style.display = 'block'; progEl.textContent = '⏳ Đang upload ảnh CCCD...';
+
   try {
     const passHash = await sha256(pass);
-    const res = await fetch(OPS_API_URL, {
-      method : 'POST', mode:'cors',
-      headers: {'Content-Type':'text/plain'},
-      body   : JSON.stringify({
-        action: 'register',
-        name, phone, email, dob, gender, store,
-        password: passHash
-      })
-    });
-    const data = await res.json();
-    if(!data.success) throw new Error(data.error || 'Đăng ký thất bại');
 
-    // Hiện thông báo thành công
-    document.getElementById('reg-form-wrap').style.display='none';
-    document.getElementById('reg-success').style.display='block';
+    // Bước 1: Upload ảnh CCCD (gửi base64 lên Ops, lưu Drive, trả URL)
+    progEl.textContent = '⏳ Đang upload ảnh CCCD mặt trước...';
+    const upFront = await callOps({
+      action    : 'uploadImage',
+      filename  : 'CCCD_front_' + email,
+      base64    : _cccdFrontB64
+    });
+    const frontUrl = upFront.url || '';
+
+    progEl.textContent = '⏳ Đang upload ảnh CCCD mặt sau...';
+    const upBack = await callOps({
+      action    : 'uploadImage',
+      filename  : 'CCCD_back_' + email,
+      base64    : _cccdBackB64
+    });
+    const backUrl = upBack.url || '';
+
+    // Bước 2: Gửi đăng ký
+    progEl.textContent = '⏳ Đang lưu thông tin đăng ký...';
+    const data = await callOps({
+      action  : 'register',
+      name, phone, email, dob, gender, store,
+      cccd, bank, stk,
+      cccdFrontUrl: frontUrl,
+      cccdBackUrl : backUrl,
+      password: passHash
+    });
+
+    // ── Check response chuẩn ──
+    const ok = data.status === 'success' || data.success === true;
+    if (!ok) throw new Error(data.error || data.message || 'Đăng ký thất bại');
+
+    // Thành công
+    progEl.style.display = 'none';
+    document.getElementById('reg-form-wrap').style.display = 'none';
+    document.getElementById('reg-success').style.display   = 'block';
+
   } catch(e) {
-    errEl.style.display='block';
-    errEl.textContent = e.message.includes('Failed to fetch')
-      ? 'Không kết nối được máy chủ. Kiểm tra mạng.' : e.message;
-  } finally { btn.disabled=false; btn.textContent='✓ Gửi đăng ký'; }
+    progEl.style.display = 'none';
+    errEl.style.display  = 'block';
+    errEl.textContent    = e.message.includes('Failed to fetch')
+      ? 'Không kết nối được máy chủ. Kiểm tra mạng và thử lại.' : e.message;
+  } finally {
+    btn.disabled = false; btn.textContent = '✓ Gửi đăng ký';
+  }
 }
 
 // ============================================================
@@ -1217,11 +1309,10 @@ async function doRegister() {
 function openForgotModal() {
   document.getElementById('login-modal').classList.add('off');
   document.getElementById('forgot-modal').classList.remove('off');
-  // Reset về bước 1
-  document.getElementById('forgot-step1').classList.add('on');
-  document.getElementById('forgot-step2').classList.remove('on');
-  document.getElementById('forgot-email').value='';
-  document.getElementById('forgot-err').style.display='none';
+  document.getElementById('forgot-step1').className = 'auth-step on';
+  document.getElementById('forgot-step2').className = 'auth-step';
+  document.getElementById('forgot-email').value = '';
+  document.getElementById('forgot-err').style.display = 'none';
 }
 
 function closeForgotModal() {
@@ -1233,31 +1324,26 @@ async function doForgotSend() {
   const email = (document.getElementById('forgot-email').value||'').trim().toLowerCase();
   const errEl = document.getElementById('forgot-err');
   const btn   = document.getElementById('forgot-btn');
-  errEl.style.display='none';
+  errEl.style.display = 'none';
 
-  if(!email || !/\S+@\S+\.\S+/.test(email)) {
-    errEl.style.display='block'; errEl.textContent='Vui lòng nhập email hợp lệ.'; return;
+  if (!email || !/\S+@\S+\.\S+/.test(email)) {
+    errEl.style.display = 'block'; errEl.textContent = 'Vui lòng nhập email hợp lệ.'; return;
   }
 
-  btn.disabled=true; btn.textContent='Đang gửi...';
+  btn.disabled = true; btn.textContent = 'Đang gửi...';
   try {
-    const res = await fetch(OPS_API_URL, {
-      method : 'POST', mode:'cors',
-      headers: {'Content-Type':'text/plain'},
-      body   : JSON.stringify({ action:'forgotPassword', email })
-    });
-    const data = await res.json();
-    // Luôn hiện bước 2 dù email không tồn tại (bảo mật — không tiết lộ email nào đã đăng ký)
-    document.getElementById('forgot-step1').classList.remove('on');
-    document.getElementById('forgot-step2').classList.add('on');
+    await callOps({ action: 'forgotPassword', email });
+    // Luôn hiện bước 2 (bảo mật, không tiết lộ email tồn tại hay không)
+    document.getElementById('forgot-step1').className = 'auth-step';
+    document.getElementById('forgot-step2').className = 'auth-step on';
   } catch(e) {
-    errEl.style.display='block';
-    errEl.textContent = 'Không kết nối được máy chủ. Kiểm tra mạng.';
-  } finally { btn.disabled=false; btn.textContent='📧 Gửi link đặt lại'; }
+    errEl.style.display = 'block';
+    errEl.textContent   = 'Không kết nối được máy chủ. Kiểm tra mạng.';
+  } finally { btn.disabled = false; btn.textContent = '📧 Gửi link đặt lại'; }
 }
 
 // ============================================================
-// RESET MẬT KHẨU (từ link email)
+// RESET MẬT KHẨU (từ link email có ?token=...)
 // ============================================================
 let _resetToken = '';
 
@@ -1266,55 +1352,69 @@ function openResetModal(token) {
   document.getElementById('login-modal').classList.add('off');
   document.getElementById('forgot-modal').classList.add('off');
   document.getElementById('reset-modal').classList.remove('off');
-  document.getElementById('reset-form-wrap').style.display='block';
-  document.getElementById('reset-success').style.display='none';
-  document.getElementById('reset-err').style.display='none';
+  document.getElementById('reset-form-wrap').style.display = 'block';
+  document.getElementById('reset-success').style.display   = 'none';
+  document.getElementById('reset-err').style.display       = 'none';
 }
 
 function closeResetModal() {
   document.getElementById('reset-modal').classList.add('off');
   document.getElementById('login-modal').classList.remove('off');
   _resetToken = '';
-  // Xóa token khỏi URL
   window.history.replaceState({}, document.title, window.location.pathname);
 }
 
 async function doResetPassword() {
-  const pass  = (document.getElementById('reset-pass').value||'').trim();
-  const pass2 = (document.getElementById('reset-pass2').value||'').trim();
+  const pass  = (document.getElementById('reset-pass').value  ||'').trim();
+  const pass2 = (document.getElementById('reset-pass2').value ||'').trim();
   const errEl = document.getElementById('reset-err');
   const btn   = document.getElementById('reset-btn');
-  errEl.style.display='none';
+  errEl.style.display = 'none';
 
-  if(!pass || pass.length < 6) {
-    errEl.style.display='block'; errEl.textContent='Mật khẩu phải có ít nhất 6 ký tự.'; return;
+  if (!pass || pass.length < 6) {
+    errEl.style.display = 'block'; errEl.textContent = 'Mật khẩu phải có ít nhất 6 ký tự.'; return;
   }
-  if(pass !== pass2) {
-    errEl.style.display='block'; errEl.textContent='Hai mật khẩu không trùng nhau.'; return;
+  if (pass !== pass2) {
+    errEl.style.display = 'block'; errEl.textContent = 'Hai mật khẩu không trùng nhau.'; return;
   }
-  if(!_resetToken) {
-    errEl.style.display='block'; errEl.textContent='Token không hợp lệ. Vui lòng yêu cầu link mới.'; return;
+  if (!_resetToken) {
+    errEl.style.display = 'block'; errEl.textContent = 'Link không hợp lệ. Vui lòng yêu cầu link mới.'; return;
   }
 
-  btn.disabled=true; btn.textContent='Đang cập nhật...';
+  btn.disabled = true; btn.textContent = 'Đang cập nhật...';
   try {
     const passHash = await sha256(pass);
-    const res = await fetch(OPS_API_URL, {
-      method : 'POST', mode:'cors',
-      headers: {'Content-Type':'text/plain'},
-      body   : JSON.stringify({ action:'resetPassword', token:_resetToken, password:passHash })
-    });
-    const data = await res.json();
-    if(!data.success) throw new Error(data.error || 'Đặt lại mật khẩu thất bại');
-
-    document.getElementById('reset-form-wrap').style.display='none';
-    document.getElementById('reset-success').style.display='block';
+    const data = await callOps({ action: 'resetPassword', token: _resetToken, password: passHash });
+    const ok = data.status === 'success' || data.success === true;
+    if (!ok) throw new Error(data.error || data.message || 'Đặt lại mật khẩu thất bại');
+    document.getElementById('reset-form-wrap').style.display = 'none';
+    document.getElementById('reset-success').style.display   = 'block';
   } catch(e) {
-    errEl.style.display='block';
-    errEl.textContent = e.message.includes('Failed to fetch')
-      ? 'Không kết nối được máy chủ.' : e.message;
-  } finally { btn.disabled=false; btn.textContent='✓ Đặt lại mật khẩu'; }
+    errEl.style.display = 'block';
+    errEl.textContent   = e.message.includes('Failed to fetch') ? 'Không kết nối được máy chủ.' : e.message;
+  } finally { btn.disabled = false; btn.textContent = '✓ Đặt lại mật khẩu'; }
 }
+
+// ── KHỞI ĐỘNG ────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  const user = getUser();
+  if (user) {
+    document.getElementById('login-modal').classList.add('off');
+    afterLogin(user);
+  } else {
+    const token = new URLSearchParams(window.location.search).get('token');
+    if (token) openResetModal(token);
+    else {
+      document.getElementById('login-modal').classList.remove('off');
+      document.getElementById('setup-modal').classList.add('off');
+    }
+  }
+  const tdEl = document.getElementById('td');
+  if (tdEl) tdEl.value = new Date().toISOString().split('T')[0];
+  if (typeof buildCats === 'function') buildCats('thu');
+  const sigEl = document.getElementById('e-sig');
+  if (sigEl && typeof emailEdits !== 'undefined') sigEl.value = emailEdits.sig || '';
+});
 
 </script>
 <script>
