@@ -756,43 +756,6 @@ function applyStoreFilter() {}
 const _CONFIG_SHEET_ID = '1oBbGWf4YUAsz8XS9wr-sq8N4IoKen5mvCsILvfI7od0';
 let OPS_API_URL = '';
 
-// Đọc sheet Config ngay khi tải web
-async function bootstrapConfig() {
-  try {
-    const base = `https://docs.google.com/spreadsheets/d/${_CONFIG_SHEET_ID}/gviz/tq?tqx=out:csv`;
-    const r = await fetch(base + '&sheet=' + encodeURIComponent('Config'));
-    if (!r.ok) return;
-    const txt = await r.text();
-    const rows = txt.split('\n').map(line => {
-      const cells = []; let cur = '', q = false;
-      for (const c of line) {
-        if (c === '"') { q = !q; }
-        else if (c === ',' && !q) { cells.push(cur.trim()); cur = ''; }
-        else cur += c;
-      }
-      cells.push(cur.trim());
-      return cells;
-    });
-    const cfg = {};
-    rows.forEach(r => { if (r[0] && r[1]) cfg[r[0].toLowerCase()] = r[1]; });
-    // Gán vào biến động
-    if (cfg['apps script url'] || cfg['apps_script_url']) {
-      OPS_API_URL = cfg['apps script url'] || cfg['apps_script_url'];
-      C.apiUrl = OPS_API_URL;
-    }
-    if (cfg['google sheet id'] || cfg['google_sheet_id']) {
-      C.sheetId = cfg['google sheet id'] || cfg['google_sheet_id'];
-    } else {
-      C.sheetId = _CONFIG_SHEET_ID;
-    }
-    if (cfg['anthropic api key'] || cfg['anthropic_api_key']) {
-      C.apiKey = cfg['anthropic api key'] || cfg['anthropic_api_key'];
-      window._aiKey = C.apiKey;
-    }
-    save();
-  } catch(e) { console.warn('bootstrapConfig:', e.message); }
-}
-
 // ── SHA-256 (browser native, không cần thư viện) ─────────────
 async function sha256(str) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
@@ -863,10 +826,58 @@ window.addEventListener('load', () => {
 });
 
 
-</script>
-<script>
 // ===== STATE =====
 let C={sheetId:'',apiUrl:'',demo:false};
+
+// Đọc sheet Config ngay khi tải web
+async function bootstrapConfig() {
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${_CONFIG_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Config`;
+    const r = await fetch(url);
+    if (!r.ok) { console.warn('bootstrapConfig: HTTP', r.status); return; }
+    const txt = await r.text();
+    console.log('[Config] raw CSV:', txt.slice(0, 300));
+
+    // Parse CSV — Google Sheets bọc cells trong "..." nếu có dấu phẩy/xuống dòng
+    function parseCSVLine(line) {
+      const cells = []; let cur = '', q = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') { q = !q; }
+        else if (ch === ',' && !q) { cells.push(cur); cur = ''; }
+        else { cur += ch; }
+      }
+      cells.push(cur);
+      return cells.map(c => c.trim());
+    }
+
+    const cfg = {};
+    txt.split('\n').slice(1).forEach(line => {  // bỏ header row
+      if (!line.trim()) return;
+      const [k, ...vparts] = parseCSVLine(line);
+      const key = (k || '').trim().toLowerCase();
+      const val = vparts.join(',').trim();
+      if (key && val) cfg[key] = val;
+    });
+
+    console.log('[Config] parsed:', cfg);
+
+    // Match key linh hoạt (có space hoặc underscore)
+    const get = (...keys) => { for (const k of keys) if (cfg[k]) return cfg[k]; return ''; };
+
+    const scriptUrl = get('apps script url', 'apps_script_url', 'appsscripturl');
+    const sheetId   = get('google sheet id', 'google_sheet_id', 'googlesheetid');
+    const apiKey    = get('anthropic api key', 'anthropic_api_key', 'anthropicapikey');
+
+    if (scriptUrl) { OPS_API_URL = scriptUrl; C.apiUrl = scriptUrl; }
+    C.sheetId = sheetId || _CONFIG_SHEET_ID;
+    if (apiKey)    { C.apiKey = apiKey; window._aiKey = apiKey; }
+
+    console.log('[Config] applied → sheetId:', C.sheetId, '| apiUrl:', C.apiUrl ? '✓' : '✗', '| apiKey:', C.apiKey ? '✓' : '✗');
+    save();
+  } catch(e) { console.warn('[Config] bootstrapConfig error:', e.message); }
+}
+
 let TX=[],ST=[],REC=[];
 let emailEdits={subject:'',greeting:'',extra:'',sig:'Thanh Liêm — Operations Manager | 0357 636 539'};
 let editingStoreId=null;
@@ -2345,8 +2356,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     const el=document.getElementById(id);
     if(el)el.addEventListener('change',updateScheduleInfo);
   });
-  // Tự động đọc Config từ sheet khi load
-  bootstrapConfig();
+
 });
 
 // ===== STORE SAVE — auto sync owner+phone to Sheet =====
