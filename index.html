@@ -220,200 +220,6 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
 </head>
 <body>
 
-<!-- ========== LOGIN MODAL ========== -->
-<div class="overlay" id="login-modal">
-  <div class="modal" style="max-width:400px">
-    <div class="mlogo" style="display:flex;justify-content:center;align-items:center;padding:10px 0 6px">
-      <img src="logo4.png" alt="Logo" style="height:50px;width:auto;object-fit:contain">
-    </div>
-    <div class="msub" style="margin-bottom:18px">P&amp;L Hub · Đăng nhập</div>
-    <div style="margin-bottom:13px">
-      <label class="mlabel">Email</label>
-      <input class="minput" id="login-email" type="email" placeholder="email@phuctea.com.vn" autocomplete="username">
-    </div>
-    <div style="margin-bottom:4px">
-      <label class="mlabel">Mật khẩu</label>
-      <input class="minput" id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password"
-             onkeydown="if(event.key==='Enter')doLogin()">
-    </div>
-    <div id="login-err" class="merr"></div>
-    <button class="mbtn" onclick="doLogin()" id="login-btn">→ Đăng nhập</button>
-    <div class="auth-divider" style="margin-top:16px">hoặc</div>
-    <div class="auth-link">
-      <a onclick="openRegisterModal()">📝 Đăng ký tài khoản mới</a>
-    </div>
-    <div class="auth-link" style="margin-top:6px">
-      <a onclick="openForgotModal()">🔑 Quên mật khẩu?</a>
-    </div>
-    <div style="text-align:center;margin-top:14px;font-size:11px;color:var(--gray)">
-      Chỉ tài khoản Admin / System mới vào được P&amp;L Hub
-    </div>
-  </div>
-</div>
-
-<!-- ========== ĐĂNG KÝ MODAL ========== -->
-<div class="overlay off" id="register-modal">
-  <div class="modal" style="max-width:560px">
-    <div class="mlogo" style="font-size:20px;margin-bottom:4px">📝 Đăng ký tài khoản</div>
-    <div class="msub" style="margin-bottom:14px">Điền đầy đủ thông tin — chờ System duyệt để đăng nhập</div>
-
-    <div id="reg-form-wrap">
-      <!-- Hàng 1: Họ tên + SĐT -->
-      <div class="fr">
-        <div>
-          <label class="mlabel">Họ và tên <span style="color:var(--red)">*</span></label>
-          <input class="minput" id="reg-name" placeholder="Nguyễn Văn A">
-        </div>
-        <div>
-          <label class="mlabel">Số điện thoại <span style="color:var(--red)">*</span></label>
-          <input class="minput" id="reg-phone" type="tel" placeholder="0909 123 456">
-        </div>
-      </div>
-      <!-- Hàng 2: Email + Ngày sinh -->
-      <div class="fr">
-        <div>
-          <label class="mlabel">Email <span style="color:var(--red)">*</span></label>
-          <input class="minput" id="reg-email" type="email" placeholder="email@gmail.com">
-        </div>
-        <div>
-          <label class="mlabel">Ngày sinh <span style="color:var(--red)">*</span></label>
-          <input class="minput" id="reg-dob" type="date">
-        </div>
-      </div>
-      <!-- Hàng 3: Giới tính + Cửa hàng -->
-      <div class="fr">
-        <div>
-          <label class="mlabel">Giới tính <span style="color:var(--red)">*</span></label>
-          <select class="minput" id="reg-gender">
-            <option value="">-- Chọn --</option>
-            <option value="Nam">Nam</option>
-            <option value="Nữ">Nữ</option>
-            <option value="Khác">Khác</option>
-          </select>
-        </div>
-        <div>
-          <label class="mlabel">Cửa hàng <span style="color:var(--red)">*</span></label>
-          <select class="minput" id="reg-store" disabled>
-            <option value="">Đang tải danh sách...</option>
-          </select>
-        </div>
-      </div>
-      <!-- Hàng 4: CCCD -->
-      <div>
-        <label class="mlabel">Số CCCD / CMND <span style="color:var(--red)">*</span></label>
-        <input class="minput" id="reg-cccd" placeholder="012345678901" maxlength="12">
-      </div>
-      <!-- Hàng 5: Ngân hàng + STK -->
-      <div class="fr">
-        <div>
-          <label class="mlabel">Tên ngân hàng <span style="color:var(--red)">*</span></label>
-          <input class="minput" id="reg-bank" placeholder="VD: Vietcombank, MB Bank...">
-        </div>
-        <div>
-          <label class="mlabel">Số tài khoản <span style="color:var(--red)">*</span></label>
-          <input class="minput" id="reg-stk" placeholder="Nhập số tài khoản">
-        </div>
-      </div>
-      <!-- Hàng 6: Ảnh CCCD -->
-      <div class="fr" style="margin-top:4px">
-        <div>
-          <label class="mlabel">Ảnh CCCD mặt trước <span style="color:var(--red)">*</span></label>
-          <div style="border:1.5px dashed var(--border);border-radius:var(--rs);padding:10px;text-align:center;cursor:pointer;background:var(--gray-l)" onclick="document.getElementById('reg-cccd-front').click()">
-            <div id="reg-front-preview" style="font-size:11px;color:var(--gray)">📷 Bấm để chọn ảnh</div>
-            <input type="file" id="reg-cccd-front" accept="image/*" style="display:none" onchange="previewCCCD('front',this)">
-          </div>
-        </div>
-        <div>
-          <label class="mlabel">Ảnh CCCD mặt sau <span style="color:var(--red)">*</span></label>
-          <div style="border:1.5px dashed var(--border);border-radius:var(--rs);padding:10px;text-align:center;cursor:pointer;background:var(--gray-l)" onclick="document.getElementById('reg-cccd-back').click()">
-            <div id="reg-back-preview" style="font-size:11px;color:var(--gray)">📷 Bấm để chọn ảnh</div>
-            <input type="file" id="reg-cccd-back" accept="image/*" style="display:none" onchange="previewCCCD('back',this)">
-          </div>
-        </div>
-      </div>
-      <!-- Hàng 7: Mật khẩu -->
-      <div class="fr" style="margin-top:4px">
-        <div>
-          <label class="mlabel">Mật khẩu <span style="color:var(--red)">*</span></label>
-          <input class="minput" id="reg-pass" type="password" placeholder="Tối thiểu 6 ký tự">
-        </div>
-        <div>
-          <label class="mlabel">Xác nhận mật khẩu <span style="color:var(--red)">*</span></label>
-          <input class="minput" id="reg-pass2" type="password" placeholder="Nhập lại mật khẩu">
-        </div>
-      </div>
-
-      <div id="reg-err" class="merr"></div>
-      <div id="reg-progress" style="display:none;font-size:12px;color:var(--brown-m);text-align:center;padding:8px;background:var(--gold-l);border-radius:var(--rs);margin-top:8px"></div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
-        <button class="mbtn" style="background:var(--gray-l);color:var(--brown);margin-top:0" onclick="closeRegisterModal()">← Quay lại</button>
-        <button class="mbtn" style="margin-top:0" onclick="doRegister()" id="reg-btn">✓ Gửi đăng ký</button>
-      </div>
-    </div>
-
-    <div class="msuccess" id="reg-success">
-      ✅ Đăng ký thành công!<br>
-      <span style="font-weight:400;font-size:12px">Tài khoản đang chờ duyệt. Bạn sẽ nhận email thông báo khi được kích hoạt.</span>
-      <br><br>
-      <button class="mbtn" style="margin-top:8px;background:var(--brown)" onclick="closeRegisterModal()">← Về trang đăng nhập</button>
-    </div>
-  </div>
-</div>
-
-<!-- ========== QUÊN MẬT KHẨU MODAL ========== -->
-<div class="overlay off" id="forgot-modal">
-  <div class="modal" style="max-width:400px">
-    <div class="mlogo" style="font-size:20px;margin-bottom:4px">🔑 Quên mật khẩu</div>
-
-    <!-- Bước 1: Nhập email -->
-    <div class="auth-step on" id="forgot-step1">
-      <div class="msub" style="margin-bottom:16px">Nhập email — chúng tôi sẽ gửi link đặt lại mật khẩu</div>
-      <label class="mlabel">Email đăng ký</label>
-      <input class="minput" id="forgot-email" type="email" placeholder="email@phuctea.com.vn"
-             onkeydown="if(event.key==='Enter')doForgotSend()">
-      <div id="forgot-err" class="merr"></div>
-      <button class="mbtn" onclick="doForgotSend()" id="forgot-btn" style="margin-top:12px">📧 Gửi link đặt lại</button>
-      <div class="auth-link" style="margin-top:10px"><a onclick="closeForgotModal()">← Quay lại đăng nhập</a></div>
-    </div>
-
-    <!-- Bước 2: Đã gửi email -->
-    <div class="auth-step" id="forgot-step2">
-      <div class="msub" style="margin-bottom:16px">Kiểm tra email của bạn</div>
-      <div class="minfo">
-        📧 Link đặt lại mật khẩu đã được gửi tới email của bạn.<br><br>
-        ⏰ Link có hiệu lực <strong>15 phút</strong>.<br><br>
-        💡 Không thấy email? Kiểm tra thư mục Spam.
-      </div>
-      <button class="mbtn" onclick="closeForgotModal()">← Về trang đăng nhập</button>
-    </div>
-  </div>
-</div>
-
-<!-- ========== RESET MẬT KHẨU MODAL ========== -->
-<div class="overlay off" id="reset-modal">
-  <div class="modal" style="max-width:400px">
-    <div class="mlogo" style="font-size:20px;margin-bottom:4px">🔐 Đặt lại mật khẩu</div>
-
-    <div id="reset-form-wrap">
-      <div class="msub" style="margin-bottom:16px">Nhập mật khẩu mới cho tài khoản của bạn</div>
-      <label class="mlabel">Mật khẩu mới <span style="color:var(--red)">*</span></label>
-      <input class="minput" id="reset-pass" type="password" placeholder="Tối thiểu 6 ký tự" style="margin-bottom:12px">
-      <label class="mlabel">Xác nhận mật khẩu <span style="color:var(--red)">*</span></label>
-      <input class="minput" id="reset-pass2" type="password" placeholder="Nhập lại mật khẩu mới">
-      <div id="reset-err" class="merr"></div>
-      <button class="mbtn" onclick="doResetPassword()" id="reset-btn" style="margin-top:12px">✓ Đặt lại mật khẩu</button>
-    </div>
-
-    <div class="msuccess" id="reset-success">
-      ✅ Mật khẩu đã được đặt lại thành công!<br>
-      <span style="font-weight:400;font-size:12px">Bạn có thể đăng nhập bằng mật khẩu mới.</span>
-      <br><br>
-      <button class="mbtn" style="margin-top:0;background:var(--brown)" onclick="closeResetModal()">→ Đăng nhập</button>
-    </div>
-  </div>
-</div>
-
 <!-- SETUP MODAL -->
 <div class="overlay off" id="setup-modal">
   <div class="modal">
@@ -464,9 +270,8 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
   </div>
   <div class="nright">
     <span class="nbadge" id="abadge" style="display:none">0</span>
-    <span id="nav-user" style="font-size:12px;color:rgba(255,255,255,.6);display:none"></span>
-    <button class="ncfg" onclick="openSetup()" id="btn-cfg"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:4px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Cài đặt</button>
-    <button class="ncfg" onclick="doLogout()" id="btn-logout" style="display:none"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:4px"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Đăng xuất</button>
+    <button class="ncfg" onclick="openSetup()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:4px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Cài đặt</button>
+
   </div>
 </nav>
 <div class="mob">
@@ -939,15 +744,19 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
 
 <script>
 // ============================================================
-// AUTH BLOCK v7 — LOGIN / REGISTER / FORGOT / RESET
-// Copy-paste chạy được ngay, không cần sửa tay
-// ============================================================
+CONFIG & UTILITIES
 
+
+// ── Stubs giữ tương thích (auth đã bỏ) ──────────────────────
+function getUser()  { return { name:'', email:'', role:'system', stores:[] }; }
+function saveUser() {}
+function clearUser(){}
+function applyStoreFilter() {}
 // !! Config tự động đọc từ sheet Config — không cần sửa tại đây !!
 const _CONFIG_SHEET_ID = '1oBbGWf4YUAsz8XS9wr-sq8N4IoKen5mvCsILvfI7od0';
 let OPS_API_URL = '';
 
-// Đọc sheet Config ngay khi tải web (trước login)
+// Đọc sheet Config ngay khi tải web
 async function bootstrapConfig() {
   try {
     const base = `https://docs.google.com/spreadsheets/d/${_CONFIG_SHEET_ID}/gviz/tq?tqx=out:csv`;
@@ -1004,174 +813,31 @@ async function callOps(payload) {
 }
 
 // ── Session ──────────────────────────────────────────────────
-function getUser()  { try { return JSON.parse(localStorage.getItem('pnl_user')||'null'); } catch(e) { return null; } }
-function saveUser(u){ localStorage.setItem('pnl_user', JSON.stringify(u)); }
-function clearUser(){ localStorage.removeItem('pnl_user'); }
 
-// ── Rate-limit login thất bại (lưu localStorage) ─────────────
-function checkLoginBlock(email) {
-  const key  = 'login_fail_' + email;
-  const data = JSON.parse(localStorage.getItem(key) || '{"count":0,"lockUntil":0}');
-  if (data.lockUntil && Date.now() < data.lockUntil) {
-    const mins = Math.ceil((data.lockUntil - Date.now()) / 60000);
-    throw new Error(`Tài khoản bị tạm khóa ${mins} phút do nhập sai quá nhiều lần.`);
-  }
-  return data;
-}
-function recordLoginFail(email) {
-  const key  = 'login_fail_' + email;
-  const data = JSON.parse(localStorage.getItem(key) || '{"count":0,"lockUntil":0}');
-  data.count = (data.count || 0) + 1;
-  if (data.count >= 5) { data.lockUntil = Date.now() + 15 * 60 * 1000; data.count = 0; }
-  localStorage.setItem(key, JSON.stringify(data));
-}
-function clearLoginFail(email) {
-  localStorage.removeItem('login_fail_' + email);
-}
-
-// ============================================================
-// ĐĂNG NHẬP
-// ============================================================
-async function doLogin() {
-  const emailRaw = (document.getElementById('login-email').value || '').trim();
-  const pass     = (document.getElementById('login-pass').value  || '').trim();
-  const errEl    = document.getElementById('login-err');
-  const btn      = document.getElementById('login-btn');
-
-  errEl.style.display = 'none';
-  if (!emailRaw || !pass) {
-    errEl.style.display = 'block';
-    errEl.textContent   = 'Vui lòng nhập đầy đủ email và mật khẩu.';
-    return;
-  }
-
-  const email = emailRaw.toLowerCase();
-  try {
-    checkLoginBlock(email); // Kiểm tra có đang bị khóa không
-  } catch(e) {
-    errEl.style.display = 'block'; errEl.textContent = e.message; return;
-  }
-
-  btn.disabled = true; btn.textContent = 'Đang xác thực...';
-  try {
-    const passHash = await sha256(pass);
-    const data = await callOps({ action: 'login', email, password: passHash });
-
-    // ── Check response: hỗ trợ cả { status:"success" } lẫn { success:true } ──
-    const ok = data.status === 'success' || data.success === true;
-    if (!ok) {
-      recordLoginFail(email);
-      throw new Error(data.error || data.message || 'Email hoặc mật khẩu không đúng.');
-    }
-
-    // Login thành công → xóa bộ đếm fail
-    clearLoginFail(email);
-
-    // Chuẩn hóa: hỗ trợ cả stores[] và storeCodes string
-    let stores = data.stores || [];
-    if (!stores.length && data.storeCodes) {
-      stores = String(data.storeCodes).split(',').map(s => s.trim()).filter(Boolean);
-    }
-
-    const user = { email, role: data.role || '', name: data.name || email, stores };
-    saveUser(user);
-    document.getElementById('login-modal').classList.add('off');
-    afterLogin(user);
-
-  } catch(e) {
-    errEl.style.display = 'block';
-    errEl.textContent   = e.message.includes('Failed to fetch')
-      ? 'Không kết nối được máy chủ. Kiểm tra mạng và thử lại.' : e.message;
-  } finally {
-    btn.disabled = false; btn.textContent = '→ Đăng nhập';
-  }
-}
-
-// ── LOGOUT ───────────────────────────────────────────────────
-function doLogout() {
-  if (!confirm('Đăng xuất khỏi P&L Hub?')) return;
-  clearUser(); location.reload();
-}
-
-// ── SAU LOGIN THÀNH CÔNG ──────────────────────────────────────
-function afterLogin(user) {
-  const navUser = document.getElementById('nav-user');
-  if (navUser) { navUser.textContent = (user.name || user.email) + ' · ' + user.role; navUser.style.display = 'inline'; }
-  document.getElementById('btn-logout').style.display = 'inline';
-  if (user.role && user.role.toLowerCase() !== 'system') {
-    document.getElementById('btn-cfg').style.display = 'none';
-  }
-  loadConfigAndData(user);
-}
-
-// ── AUTO-LOAD CONFIG + DATA ───────────────────────────────────
-async function loadConfigAndData(user) {
+// ── LOAD CONFIG + DATA (không cần đăng nhập) ───────────────
+async function loadConfigAndData() {
   load('Đang tải cấu hình...');
   try {
-    // Luôn đọc lại sheet Config để đồng bộ mới nhất
     await bootstrapConfig();
-
-    // Fallback: nếu chưa có apiUrl thì thử qua OPS_API_URL (nếu đã set)
-    if (!C.sheetId && OPS_API_URL) {
-      try {
-        const json = await callOps({ action: 'getConfig' });
-        let cfg = (json.success && json.config) ? json.config : {};
-        if (cfg.PNL_SHEET_ID) { C.sheetId = cfg.PNL_SHEET_ID; }
-        if (cfg.OPS_API_URL)  { C.apiUrl = cfg.OPS_API_URL; OPS_API_URL = cfg.OPS_API_URL; }
-        if (cfg.API_KEY)      { C.apiKey = cfg.API_KEY; window._aiKey = cfg.API_KEY; }
-        save();
-      } catch(e) { console.warn('Không load config qua OPS:', e.message); }
-    }
   } catch(e) { console.warn('Không load config:', e.message); }
-
-  // Sync UI fields (chỉ System mới thấy)
-  const sidEl = document.getElementById('cfg-sid');
-  const apiEl = document.getElementById('cfg-api');
-  const akEl  = document.getElementById('cfg-apikey');
-  if (sidEl) sidEl.value = C.sheetId || '';
-  if (apiEl) apiEl.value = C.apiUrl  || '';
-
-  // Disable setup nếu không phải System
-  if (user.role && user.role.toLowerCase() !== 'system') {
-    [sidEl, apiEl, akEl].forEach(el => {
-      if (el) { el.disabled = true; el.title = 'Chỉ System mới được chỉnh sửa'; }
-    });
-    const mbtn = document.querySelector('#setup-modal .mbtn');
-    if (mbtn) { mbtn.disabled = true; mbtn.style.opacity = '0.4'; }
-  }
 
   if (!C.sheetId) {
     unload();
-    if (user.role && user.role.toLowerCase() === 'system') { openSetup(); toast('Chưa có Sheet ID. Vui lòng cài đặt.','twarn'); }
-    else toast('Chưa có cấu hình Sheet. Liên hệ System Admin.','terr');
+    openSetup();
+    toast('Chưa có Sheet ID. Vui lòng cài đặt.','twarn');
     return;
   }
 
   load('Đang tải dữ liệu P&L...');
   try {
     await loadSheets(C.sheetId);
-    applyStoreFilter(user);
     renderAll();
-    toast('✓ Đăng nhập thành công — ' + (user.name || user.email), 'tok');
+    toast('✓ Đã tải dữ liệu P&L', 'tok');
   } catch(e) { toast('Lỗi tải dữ liệu: ' + e.message, 'terr'); }
   finally { unload(); }
 }
 
-// ── FILTER STORE THEO ROLE ────────────────────────────────────
-function applyStoreFilter(user) {
-  if (!user) return;
-  const role = (user.role || '').toLowerCase();
-  if (role === 'system') return; // System xem tất cả
 
-  const allowed = (user.stores || []).map(s => s.trim().toUpperCase());
-  if (!allowed.length) {
-    ST = []; TX = [];
-    toast('Tài khoản chưa được gán cửa hàng. Liên hệ System Admin.','twarn');
-    return;
-  }
-  ST = ST.filter(s => allowed.includes((s.id||'').toUpperCase()));
-  TX = TX.filter(t => allowed.includes((t.store||'').toUpperCase()));
-}
 
 // ── RELOAD (patch lại để áp filter) ──────────────────────────
 async function reload() {
@@ -1180,289 +846,22 @@ async function reload() {
   load('Đang tải từ Sheets...');
   try {
     await loadSheets(C.sheetId);
-    const user = getUser();
-    if (user) applyStoreFilter(user);
     renderAll();
     toast('✓ Cập nhật xong', 'tok');
   } catch(e) { toast('Lỗi: ' + e.message, 'terr'); }
   finally { unload(); }
 }
 
-// ============================================================
-// ĐĂNG KÝ TÀI KHOẢN
-// ============================================================
-let _cccdFrontB64 = '';
-let _cccdBackB64  = '';
-
-// Preview ảnh CCCD
-function previewCCCD(side, input) {
-  const file = input.files[0];
-  if (!file) return;
-  const id = side === 'front' ? 'reg-front-preview' : 'reg-back-preview';
-  const reader = new FileReader();
-  reader.onload = e => {
-    if (side === 'front') _cccdFrontB64 = e.target.result;
-    else                  _cccdBackB64  = e.target.result;
-    document.getElementById(id).innerHTML =
-      `<img src="${e.target.result}" style="max-width:100%;max-height:80px;border-radius:4px">`;
-  };
-  reader.readAsDataURL(file);
-}
-
-function openRegisterModal() {
-  document.getElementById('login-modal').classList.add('off');
-  document.getElementById('register-modal').classList.remove('off');
-  document.getElementById('reg-success').style.display = 'none';
-  document.getElementById('reg-form-wrap').style.display = 'block';
-  document.getElementById('reg-err').style.display = 'none';
-  document.getElementById('reg-progress').style.display = 'none';
-  _cccdFrontB64 = ''; _cccdBackB64 = '';
-  // Load cửa hàng khi mở modal
-  const sel = document.getElementById('reg-store');
-  if (sel && sel.options.length <= 1) loadStoresForRegister();
-}
-
-function closeRegisterModal() {
-  document.getElementById('register-modal').classList.add('off');
-  document.getElementById('login-modal').classList.remove('off');
-  ['reg-name','reg-phone','reg-email','reg-dob','reg-pass','reg-pass2','reg-cccd','reg-bank','reg-stk'].forEach(id => {
-    const el = document.getElementById(id); if (el) el.value = '';
-  });
-  document.getElementById('reg-gender').value = '';
-  document.getElementById('reg-store').value  = '';
-  document.getElementById('reg-front-preview').innerHTML = '📷 Bấm để chọn ảnh';
-  document.getElementById('reg-back-preview').innerHTML  = '📷 Bấm để chọn ảnh';
-  _cccdFrontB64 = ''; _cccdBackB64 = '';
-}
-
-// Load danh sách cửa hàng từ Ops Center (sheet CuaHang)
-async function loadStoresForRegister() {
-  const sel = document.getElementById('reg-store');
-  if (!sel) return;
-  sel.innerHTML = '<option value="">Đang tải...</option>';
-  sel.disabled  = true;
-  try {
-    // Lấy danh sách cửa hàng qua Ops API (không cần SheetID phía client)
-    const data = await callOps({ action: 'getStores' });
-    const stores = data.stores || [];
-    sel.innerHTML = '<option value="">-- Chọn cửa hàng --</option>';
-    stores.forEach(s => {
-      const opt = document.createElement('option');
-      opt.value       = s.id || s;
-      opt.textContent = s.name ? s.id + ' — ' + s.name : s.id || s;
-      sel.appendChild(opt);
-    });
-    sel.disabled = false;
-  } catch(e) {
-    sel.innerHTML = '<option value="">Không tải được — thử lại sau</option>';
-    sel.disabled  = false;
-  }
-}
-
-async function doRegister() {
-  const name  = (document.getElementById('reg-name').value  ||'').trim();
-  const phone = (document.getElementById('reg-phone').value ||'').trim();
-  const email = (document.getElementById('reg-email').value ||'').trim().toLowerCase();
-  const dob   = (document.getElementById('reg-dob').value   ||'').trim();
-  const gender= document.getElementById('reg-gender').value;
-  const store = document.getElementById('reg-store').value;
-  const cccd  = (document.getElementById('reg-cccd').value  ||'').trim();
-  const bank  = (document.getElementById('reg-bank').value  ||'').trim();
-  const stk   = (document.getElementById('reg-stk').value   ||'').trim();
-  const pass  = (document.getElementById('reg-pass').value  ||'').trim();
-  const pass2 = (document.getElementById('reg-pass2').value ||'').trim();
-  const errEl = document.getElementById('reg-err');
-  const progEl= document.getElementById('reg-progress');
-  const btn   = document.getElementById('reg-btn');
-
-  errEl.style.display  = 'none';
-  progEl.style.display = 'none';
-
-  // Validate đầy đủ
-  if (!name||!phone||!email||!dob||!gender||!store||!cccd||!bank||!stk||!pass||!pass2) {
-    errEl.style.display = 'block'; errEl.textContent = 'Vui lòng điền đầy đủ tất cả thông tin bắt buộc (*)'; return;
-  }
-  if (!/\S+@\S+\.\S+/.test(email)) {
-    errEl.style.display = 'block'; errEl.textContent = 'Email không hợp lệ.'; return;
-  }
-  if (pass.length < 6) {
-    errEl.style.display = 'block'; errEl.textContent = 'Mật khẩu phải có ít nhất 6 ký tự.'; return;
-  }
-  if (pass !== pass2) {
-    errEl.style.display = 'block'; errEl.textContent = 'Hai mật khẩu không trùng nhau.'; return;
-  }
-  if (!_cccdFrontB64) {
-    errEl.style.display = 'block'; errEl.textContent = 'Vui lòng tải ảnh CCCD mặt trước.'; return;
-  }
-  if (!_cccdBackB64) {
-    errEl.style.display = 'block'; errEl.textContent = 'Vui lòng tải ảnh CCCD mặt sau.'; return;
-  }
-
-  btn.disabled = true; btn.textContent = 'Đang gửi...';
-  progEl.style.display = 'block'; progEl.textContent = '⏳ Đang upload ảnh CCCD...';
-
-  try {
-    const passHash = await sha256(pass);
-
-    // Bước 1: Upload ảnh CCCD (gửi base64 lên Ops, lưu Drive, trả URL)
-    progEl.textContent = '⏳ Đang upload ảnh CCCD mặt trước...';
-    const upFront = await callOps({
-      action    : 'uploadImage',
-      filename  : 'CCCD_front_' + email,
-      base64    : _cccdFrontB64
-    });
-    const frontUrl = upFront.url || '';
-
-    progEl.textContent = '⏳ Đang upload ảnh CCCD mặt sau...';
-    const upBack = await callOps({
-      action    : 'uploadImage',
-      filename  : 'CCCD_back_' + email,
-      base64    : _cccdBackB64
-    });
-    const backUrl = upBack.url || '';
-
-    // Bước 2: Gửi đăng ký
-    progEl.textContent = '⏳ Đang lưu thông tin đăng ký...';
-    const data = await callOps({
-      action  : 'register',
-      name, phone, email, dob, gender, store,
-      cccd, bank, stk,
-      cccdFrontUrl: frontUrl,
-      cccdBackUrl : backUrl,
-      password: passHash
-    });
-
-    // ── Check response chuẩn ──
-    const ok = data.status === 'success' || data.success === true;
-    if (!ok) throw new Error(data.error || data.message || 'Đăng ký thất bại');
-
-    // Thành công
-    progEl.style.display = 'none';
-    document.getElementById('reg-form-wrap').style.display = 'none';
-    document.getElementById('reg-success').style.display   = 'block';
-
-  } catch(e) {
-    progEl.style.display = 'none';
-    errEl.style.display  = 'block';
-    errEl.textContent    = e.message.includes('Failed to fetch')
-      ? 'Không kết nối được máy chủ. Kiểm tra mạng và thử lại.' : e.message;
-  } finally {
-    btn.disabled = false; btn.textContent = '✓ Gửi đăng ký';
-  }
-}
-
-// ============================================================
-// QUÊN MẬT KHẨU
-// ============================================================
-function openForgotModal() {
-  document.getElementById('login-modal').classList.add('off');
-  document.getElementById('forgot-modal').classList.remove('off');
-  document.getElementById('forgot-step1').className = 'auth-step on';
-  document.getElementById('forgot-step2').className = 'auth-step';
-  document.getElementById('forgot-email').value = '';
-  document.getElementById('forgot-err').style.display = 'none';
-}
-
-function closeForgotModal() {
-  document.getElementById('forgot-modal').classList.add('off');
-  document.getElementById('login-modal').classList.remove('off');
-}
-
-async function doForgotSend() {
-  const email = (document.getElementById('forgot-email').value||'').trim().toLowerCase();
-  const errEl = document.getElementById('forgot-err');
-  const btn   = document.getElementById('forgot-btn');
-  errEl.style.display = 'none';
-
-  if (!email || !/\S+@\S+\.\S+/.test(email)) {
-    errEl.style.display = 'block'; errEl.textContent = 'Vui lòng nhập email hợp lệ.'; return;
-  }
-
-  btn.disabled = true; btn.textContent = 'Đang gửi...';
-  try {
-    await callOps({ action: 'forgotPassword', email });
-    // Luôn hiện bước 2 (bảo mật, không tiết lộ email tồn tại hay không)
-    document.getElementById('forgot-step1').className = 'auth-step';
-    document.getElementById('forgot-step2').className = 'auth-step on';
-  } catch(e) {
-    errEl.style.display = 'block';
-    errEl.textContent   = 'Không kết nối được máy chủ. Kiểm tra mạng.';
-  } finally { btn.disabled = false; btn.textContent = '📧 Gửi link đặt lại'; }
-}
-
-// ============================================================
-// RESET MẬT KHẨU (từ link email có ?token=...)
-// ============================================================
-let _resetToken = '';
-
-function openResetModal(token) {
-  _resetToken = token;
-  document.getElementById('login-modal').classList.add('off');
-  document.getElementById('forgot-modal').classList.add('off');
-  document.getElementById('reset-modal').classList.remove('off');
-  document.getElementById('reset-form-wrap').style.display = 'block';
-  document.getElementById('reset-success').style.display   = 'none';
-  document.getElementById('reset-err').style.display       = 'none';
-}
-
-function closeResetModal() {
-  document.getElementById('reset-modal').classList.add('off');
-  document.getElementById('login-modal').classList.remove('off');
-  _resetToken = '';
-  window.history.replaceState({}, document.title, window.location.pathname);
-}
-
-async function doResetPassword() {
-  const pass  = (document.getElementById('reset-pass').value  ||'').trim();
-  const pass2 = (document.getElementById('reset-pass2').value ||'').trim();
-  const errEl = document.getElementById('reset-err');
-  const btn   = document.getElementById('reset-btn');
-  errEl.style.display = 'none';
-
-  if (!pass || pass.length < 6) {
-    errEl.style.display = 'block'; errEl.textContent = 'Mật khẩu phải có ít nhất 6 ký tự.'; return;
-  }
-  if (pass !== pass2) {
-    errEl.style.display = 'block'; errEl.textContent = 'Hai mật khẩu không trùng nhau.'; return;
-  }
-  if (!_resetToken) {
-    errEl.style.display = 'block'; errEl.textContent = 'Link không hợp lệ. Vui lòng yêu cầu link mới.'; return;
-  }
-
-  btn.disabled = true; btn.textContent = 'Đang cập nhật...';
-  try {
-    const passHash = await sha256(pass);
-    const data = await callOps({ action: 'resetPassword', token: _resetToken, password: passHash });
-    const ok = data.status === 'success' || data.success === true;
-    if (!ok) throw new Error(data.error || data.message || 'Đặt lại mật khẩu thất bại');
-    document.getElementById('reset-form-wrap').style.display = 'none';
-    document.getElementById('reset-success').style.display   = 'block';
-  } catch(e) {
-    errEl.style.display = 'block';
-    errEl.textContent   = e.message.includes('Failed to fetch') ? 'Không kết nối được máy chủ.' : e.message;
-  } finally { btn.disabled = false; btn.textContent = '✓ Đặt lại mật khẩu'; }
-}
-
 // ── KHỞI ĐỘNG ────────────────────────────────────────────────
 window.addEventListener('load', () => {
-  const user = getUser();
-  if (user) {
-    document.getElementById('login-modal').classList.add('off');
-    afterLogin(user);
-  } else {
-    const token = new URLSearchParams(window.location.search).get('token');
-    if (token) openResetModal(token);
-    else {
-      document.getElementById('login-modal').classList.remove('off');
-      document.getElementById('setup-modal').classList.add('off');
-    }
-  }
+  loadConfigAndData();
   const tdEl = document.getElementById('td');
   if (tdEl) tdEl.value = new Date().toISOString().split('T')[0];
   if (typeof buildCats === 'function') buildCats('thu');
   const sigEl = document.getElementById('e-sig');
   if (sigEl && typeof emailEdits !== 'undefined') sigEl.value = emailEdits.sig || '';
 });
+
 
 </script>
 <script>
@@ -1571,12 +970,6 @@ function openSetup(){
 }
 
 async function doSetup(){
-  const user=getUser();
-  if(user && user.role && user.role.toLowerCase()!=='system'){
-    toast('Chỉ System mới được thay đổi cấu hình','terr');
-    document.getElementById('setup-modal').classList.add('off');
-    return;
-  }
   const sid=document.getElementById('cfg-sid').value.trim();
   const au=document.getElementById('cfg-api').value.trim();
   const err=document.getElementById('cfg-err');
@@ -1606,8 +999,6 @@ async function reload(){
   load('Đang tải từ Sheets...');
   try{
     await loadSheets(C.sheetId);
-    const user=getUser();
-    if(user) applyStoreFilter(user);
     renderAll();toast('✓ Cập nhật xong','tok');
   }
   catch(e){toast('Lỗi: '+e.message,'terr');}
