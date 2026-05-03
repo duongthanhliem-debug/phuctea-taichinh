@@ -744,7 +744,8 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
 
 <script>
 // ============================================================
-CONFIG & UTILITIES
+// CONFIG & UTILITIES
+// ============================================================
 
 
 // ── Stubs giữ tương thích (auth đã bỏ) ──────────────────────
@@ -828,6 +829,11 @@ window.addEventListener('load', () => {
 
 // ===== STATE =====
 let C={sheetId:'',apiUrl:'',demo:false};
+let TX=[],ST=[],REC=[];
+let emailEdits={subject:'',greeting:'',extra:'',sig:'Thanh Liêm — Operations Manager | 0357 636 539'};
+let editingStoreId=null;
+let manualAttachments=[];
+let scheduledEmails=[];
 
 // Đọc sheet Config ngay khi tải web
 async function bootstrapConfig() {
@@ -878,11 +884,6 @@ async function bootstrapConfig() {
   } catch(e) { console.warn('[Config] bootstrapConfig error:', e.message); }
 }
 
-let TX=[],ST=[],REC=[];
-let emailEdits={subject:'',greeting:'',extra:'',sig:'Thanh Liêm — Operations Manager | 0357 636 539'};
-let editingStoreId=null;
-let manualAttachments=[];
-let scheduledEmails=[];
 
 const COGS=[
   'NVL hệ thống','NVL địa phương','Chi phí vận chuyển','Vật phẩm','Công nợ','Nhập đồ ăn vặt'];
