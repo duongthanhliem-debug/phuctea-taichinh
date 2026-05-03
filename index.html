@@ -225,7 +225,7 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
 <div class="overlay" id="login-modal">
   <div class="modal" style="max-width:400px">
     <div style="text-align:center;margin-bottom:20px">
-      <div style="font-size:32px;margin-bottom:6px">🍵</div>
+      <div style="margin-bottom:10px;display:flex;justify-content:center"><img src="logo4.png" style="height:56px;width:auto" onerror="this.style.display='none'"></div>
       <div class="mlogo">Phúc Tea P&L</div>
       <div style="font-size:13px;color:var(--gray);margin-top:4px">Đăng nhập để tiếp tục</div>
     </div>
@@ -808,7 +808,18 @@ async function doLogin() {
   errEl.textContent = '';
   if (!email) { errEl.textContent = 'Vui lòng nhập email'; return; }
   if (!pass)  { errEl.textContent = 'Vui lòng nhập mật khẩu'; return; }
-  if (!OPS_API_URL) { errEl.textContent = 'Chưa có cấu hình server. Liên hệ System Admin.'; return; }
+
+  // Nếu chưa có OPS_API_URL, thử load config lại 1 lần
+  if (!OPS_API_URL) {
+    btn.disabled = true; btn.textContent = 'Đang kết nối server...';
+    await bootstrapConfig();
+    btn.disabled = false; btn.textContent = 'Đăng nhập';
+  }
+
+  if (!OPS_API_URL) {
+    errEl.innerHTML = 'Chưa kết nối được server.<br><small style="color:var(--gray)">Kiểm tra sheet Config có cột <b>Apps Script URL</b> chưa?</small>';
+    return;
+  }
 
   btn.disabled = true; btn.textContent = 'Đang xác thực...';
   try {
@@ -817,16 +828,18 @@ async function doLogin() {
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ action: 'login', email, password: pass })
     });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
+    console.log('[Login] response:', data);
     if (data.success && data.user) {
       saveUser(data.user);
       afterLogin(data.user);
     } else {
-      errEl.textContent = data.message || 'Email hoặc mật khẩu không đúng';
+      errEl.textContent = data.message || data.error || 'Email hoặc mật khẩu không đúng';
     }
   } catch(e) {
-    errEl.textContent = 'Lỗi kết nối server. Thử lại sau.';
-    console.error('Login error:', e);
+    console.error('[Login] error:', e);
+    errEl.textContent = 'Lỗi kết nối server (' + e.message + '). Thử lại sau.';
   } finally {
     btn.disabled = false; btn.textContent = 'Đăng nhập';
   }
@@ -972,14 +985,22 @@ let scheduledEmails=[];
 
 // Đọc sheet Config ngay khi tải web
 async function bootstrapConfig() {
+  // 1. Khôi phục từ localStorage cache trước (login nhanh khi đã từng load)
+  try {
+    const cached = JSON.parse(localStorage.getItem('ptcfg') || '{}');
+    if (cached.apiUrl  && !OPS_API_URL) { OPS_API_URL = cached.apiUrl; C.apiUrl = cached.apiUrl; }
+    if (cached.sheetId && !C.sheetId)   C.sheetId = cached.sheetId;
+    if (cached.apiKey  && !C.apiKey)    { C.apiKey = cached.apiKey; window._aiKey = cached.apiKey; }
+  } catch(e) {}
+
+  // 2. Fetch mới từ sheet Config
   try {
     const url = `https://docs.google.com/spreadsheets/d/${_CONFIG_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Config`;
     const r = await fetch(url);
-    if (!r.ok) { console.warn('bootstrapConfig: HTTP', r.status); return; }
+    if (!r.ok) { console.warn('[Config] HTTP', r.status, '— dùng cache'); return; }
     const txt = await r.text();
-    console.log('[Config] raw CSV:', txt.slice(0, 300));
+    console.log('[Config] raw CSV:', txt.slice(0, 400));
 
-    // Parse CSV — Google Sheets bọc cells trong "..." nếu có dấu phẩy/xuống dòng
     function parseCSVLine(line) {
       const cells = []; let cur = '', q = false;
       for (let i = 0; i < line.length; i++) {
@@ -993,30 +1014,28 @@ async function bootstrapConfig() {
     }
 
     const cfg = {};
-    txt.split('\n').slice(1).forEach(line => {  // bỏ header row
+    txt.split('\n').slice(1).forEach(line => {
       if (!line.trim()) return;
       const [k, ...vparts] = parseCSVLine(line);
       const key = (k || '').trim().toLowerCase();
       const val = vparts.join(',').trim();
       if (key && val) cfg[key] = val;
     });
+    console.log('[Config] parsed keys:', Object.keys(cfg));
 
-    console.log('[Config] parsed:', cfg);
-
-    // Match key linh hoạt (có space hoặc underscore)
     const get = (...keys) => { for (const k of keys) if (cfg[k]) return cfg[k]; return ''; };
-
-    const scriptUrl = get('apps script url', 'apps_script_url', 'appsscripturl');
-    const sheetId   = get('google sheet id', 'google_sheet_id', 'googlesheetid');
-    const apiKey    = get('anthropic api key', 'anthropic_api_key', 'anthropicapikey');
+    const scriptUrl = get('apps script url', 'apps_script_url');
+    const sheetId   = get('google sheet id',  'google_sheet_id');
+    const apiKey    = get('anthropic api key','anthropic_api_key');
 
     if (scriptUrl) { OPS_API_URL = scriptUrl; C.apiUrl = scriptUrl; }
-    C.sheetId = sheetId || _CONFIG_SHEET_ID;
+    if (sheetId)   C.sheetId = sheetId;
+    if (!C.sheetId) C.sheetId = _CONFIG_SHEET_ID;
     if (apiKey)    { C.apiKey = apiKey; window._aiKey = apiKey; }
 
-    console.log('[Config] applied → sheetId:', C.sheetId, '| apiUrl:', C.apiUrl ? '✓' : '✗', '| apiKey:', C.apiKey ? '✓' : '✗');
+    console.log('[Config] done → apiUrl:', OPS_API_URL ? OPS_API_URL.slice(0,50)+'…' : '✗ EMPTY', '| sheetId:', C.sheetId ? '✓' : '✗');
     save();
-  } catch(e) { console.warn('[Config] bootstrapConfig error:', e.message); }
+  } catch(e) { console.warn('[Config] fetch error:', e.message); }
 }
 
 
