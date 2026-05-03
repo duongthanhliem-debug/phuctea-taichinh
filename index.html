@@ -1352,12 +1352,16 @@ function showPreviewTab(tab){
 
 function applyEdit(){
   const analysisEl = document.getElementById('e-analysis');
+  const manualText = analysisEl ? analysisEl.value : '';
+  // Giữ lại _manualAnalysis nếu người dùng đã sửa tay
+  const wasManual = emailEdits._manualAnalysis || (manualText !== '' && manualText !== (emailEdits._lastAiAnalysis||''));
   emailEdits={
     subject:document.getElementById('e-subject').value,
     greeting:document.getElementById('e-greeting').value,
     extra:document.getElementById('e-extra').value,
     sig:document.getElementById('e-sig').value,
-    _lastAiAnalysis: analysisEl ? analysisEl.value : (emailEdits._lastAiAnalysis||''),
+    _lastAiAnalysis: manualText || (emailEdits._lastAiAnalysis||''),
+    _manualAnalysis: wasManual,
   };
   showPreviewTab('visual');
   previewEmail();
