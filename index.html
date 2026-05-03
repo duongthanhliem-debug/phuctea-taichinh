@@ -226,6 +226,7 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
   <div class="modal" style="max-width:400px">
     <div style="text-align:center;margin-bottom:20px">
       <div style="margin-bottom:10px;display:flex;justify-content:center"><img src="logo4.png" style="height:56px;width:auto" onerror="this.style.display='none'"></div>
+      <div class="mlogo">Phúc Tea P&L</div>
       <div style="font-size:13px;color:var(--gray);margin-top:4px">Đăng nhập để tiếp tục</div>
     </div>
     <div class="fg">
@@ -808,37 +809,66 @@ async function doLogin() {
   if (!email) { errEl.textContent = 'Vui lòng nhập email'; return; }
   if (!pass)  { errEl.textContent = 'Vui lòng nhập mật khẩu'; return; }
 
-  // Nếu chưa có OPS_API_URL, thử load config lại 1 lần
-  if (!OPS_API_URL) {
-    btn.disabled = true; btn.textContent = 'Đang kết nối server...';
-    await bootstrapConfig();
-    btn.disabled = false; btn.textContent = 'Đăng nhập';
-  }
-
-  if (!OPS_API_URL) {
-    errEl.innerHTML = 'Chưa kết nối được server.<br><small style="color:var(--gray)">Kiểm tra sheet Config có cột <b>Apps Script URL</b> chưa?</small>';
-    return;
-  }
-
   btn.disabled = true; btn.textContent = 'Đang xác thực...';
   try {
-    const res = await fetch(OPS_API_URL, {
-      method: 'POST', mode: 'cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ action: 'login', email, password: pass })
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    console.log('[Login] response:', data);
-    if (data.success && data.user) {
-      saveUser(data.user);
-      afterLogin(data.user);
-    } else {
-      errEl.textContent = data.message || data.error || 'Email hoặc mật khẩu không đúng';
+    // Đọc sheet NhanSu trực tiếp qua CSV (không cần Apps Script)
+    const sheetId = C.sheetId || _CONFIG_SHEET_ID;
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=NhanSu`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Không đọc được dữ liệu nhân sự (HTTP ' + res.status + ')');
+    const txt = await res.text();
+
+    // Parse CSV
+    function parseCSVLine(line) {
+      const cells = []; let cur = '', q = false;
+      for (const ch of line) {
+        if (ch === '"') { q = !q; }
+        else if (ch === ',' && !q) { cells.push(cur.trim()); cur = ''; }
+        else cur += ch;
+      }
+      cells.push(cur.trim());
+      return cells;
     }
+
+    const rows = txt.split('\n').slice(1).map(parseCSVLine).filter(r => r.length > 4);
+    // Cột: A=0,B=1,...,E=4(email),I=8(stores),J=9(role),M=12(status),O=14(password)
+    const found = rows.find(r => (r[4]||'').trim().toLowerCase() === email);
+
+    if (!found) {
+      errEl.textContent = 'Email chưa được đăng ký trong hệ thống'; return;
+    }
+
+    const rowRole   = (found[9]  || '').trim();
+    const rowStatus = (found[12] || '').trim();
+    const rowPass   = (found[14] || '').trim();
+    const rowName   = (found[1]  || '').trim();
+    const rowStores = (found[8]  || '').trim();
+
+    // Kiểm tra mật khẩu
+    if (rowPass !== pass) {
+      errEl.textContent = 'Mật khẩu không đúng'; return;
+    }
+
+    // Kiểm tra trạng thái
+    if (!rowStatus.toLowerCase().includes('đang cộng tác') && !rowStatus.toLowerCase().includes('dang cong tac')) {
+      errEl.textContent = 'Tài khoản không còn hoạt động (' + rowStatus + ')'; return;
+    }
+
+    // Kiểm tra phân quyền
+    const roleLower = rowRole.toLowerCase();
+    if (roleLower !== 'admin' && roleLower !== 'system') {
+      errEl.textContent = 'Tài khoản không có quyền truy cập P&L Hub'; return;
+    }
+
+    const stores = rowStores ? rowStores.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean) : [];
+    const user = { email, name: rowName, role: rowRole, stores };
+    console.log('[Login] success:', user.name, user.role);
+    saveUser(user);
+    afterLogin(user);
+
   } catch(e) {
-    console.error('[Login] error:', e);
-    errEl.textContent = 'Lỗi kết nối server (' + e.message + '). Thử lại sau.';
+    console.error('[Login]', e);
+    errEl.textContent = 'Lỗi: ' + e.message;
   } finally {
     btn.disabled = false; btn.textContent = 'Đăng nhập';
   }
