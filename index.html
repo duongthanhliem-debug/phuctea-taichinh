@@ -226,7 +226,6 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
   <div class="modal" style="max-width:400px">
     <div style="text-align:center;margin-bottom:20px">
       <div style="margin-bottom:10px;display:flex;justify-content:center"><img src="logo4.png" style="height:56px;width:auto" onerror="this.style.display='none'"></div>
-      <div class="mlogo">Phúc Tea P&L</div>
       <div style="font-size:13px;color:var(--gray);margin-top:4px">Đăng nhập để tiếp tục</div>
     </div>
     <div class="fg">
@@ -235,11 +234,11 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
     </div>
     <div class="fg" style="position:relative">
       <label class="fl">Mật khẩu</label>
-      <input type="password" class="fc" id="l-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
-      <span onclick="togglePassVis('l-pass',this)" style="position:absolute;right:12px;top:34px;cursor:pointer;font-size:16px;color:var(--gray)">👁</span>
+      <input type="password" class="fc" id="l-pass" placeholder="••••••••" autocomplete="current-password">
+      <span id="l-pass-toggle" style="position:absolute;right:12px;top:34px;cursor:pointer;font-size:16px;color:var(--gray)">👁</span>
     </div>
     <div id="l-err" style="color:var(--red);font-size:13px;margin:6px 0;min-height:18px;text-align:center"></div>
-    <button class="mbtn" id="l-btn" onclick="doLogin()">Đăng nhập</button>
+    <button class="mbtn" id="l-btn">Đăng nhập</button>
     <div style="display:flex;justify-content:space-between;margin-top:14px;font-size:13px">
       <span style="color:var(--gray)">Chưa có tài khoản? <a href="https://zalo.me/0357636539" target="_blank" style="color:var(--gold);font-weight:600;text-decoration:none">Liên hệ Zalo</a></span>
       <a href="https://zalo.me/0357636539" target="_blank" style="color:var(--brown-l);text-decoration:none">Quên mật khẩu?</a>
@@ -2525,6 +2524,19 @@ document.addEventListener('DOMContentLoaded',()=>{
   ['e-send-date','e-send-time'].forEach(id=>{
     const el=document.getElementById(id);
     if(el)el.addEventListener('change',updateScheduleInfo);
+  });
+
+  // Login modal — dùng addEventListener thay vì onclick để tránh scope issues
+  const lBtn    = document.getElementById('l-btn');
+  const lPass   = document.getElementById('l-pass');
+  const lToggle = document.getElementById('l-pass-toggle');
+  if(lBtn)    lBtn.addEventListener('click', ()=>doLogin());
+  if(lPass)   lPass.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+  if(lToggle) lToggle.addEventListener('click', function(){
+    const inp = document.getElementById('l-pass');
+    if(!inp) return;
+    inp.type = inp.type==='password' ? 'text' : 'password';
+    this.textContent = inp.type==='password' ? '👁' : '🙈';
   });
 
 });
