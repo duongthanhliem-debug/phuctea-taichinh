@@ -222,33 +222,54 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
 
 
 <!-- ========== LOGIN MODAL ========== -->
-<div class="overlay" id="login-modal">
-  <div class="modal" style="max-width:400px">
-    <div style="text-align:center;margin-bottom:20px">
-      <div style="margin-bottom:10px;display:flex;justify-content:center"><img src="logo4.png" style="height:56px;width:auto" onerror="this.style.display='none'"></div>
-      <div class="mlogo">P&L Hub</div>
-      <div style="font-size:13px;color:var(--gray);margin-top:4px">Đăng nhập để tiếp tục</div>
+<div id="login-modal" style="display:flex;position:fixed;inset:0;z-index:2000;background:var(--brown);align-items:center;justify-content:center;padding:24px">
+  <!-- Background texture dots -->
+  <div style="position:absolute;inset:0;opacity:.06;background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:28px 28px;pointer-events:none"></div>
+
+  <div style="position:relative;background:#fff;border-radius:24px;padding:40px 36px 32px;max-width:420px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,.3)">
+
+    <!-- Logo -->
+    <div style="text-align:center;margin-bottom:8px">
+      <img src="logo4.png" style="height:72px;width:auto" onerror="this.style.display='none'">
     </div>
-    <div class="fg">
-      <label class="fl">Email</label>
-      <input type="email" class="fc" id="l-email" placeholder="email@phuctea.vn" autocomplete="email">
+
+    <!-- Title -->
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="font-size:28px;font-weight:700;color:var(--gold);font-family:'Be Vietnam Pro',sans-serif;letter-spacing:-.5px">P&L Hub</div>
+      <div style="font-size:14px;color:var(--gray);margin-top:6px">Đăng nhập để tiếp tục</div>
     </div>
-    <div class="fg" style="position:relative">
-      <label class="fl">Mật khẩu</label>
-      <input type="password" class="fc" id="l-pass" placeholder="••••••••" autocomplete="current-password">
-      <span id="l-pass-toggle" style="position:absolute;right:12px;top:34px;cursor:pointer;font-size:16px;color:var(--gray)">👁</span>
+
+    <!-- Email -->
+    <div style="margin-bottom:16px">
+      <label style="display:block;font-size:11px;font-weight:700;color:var(--brown);letter-spacing:.06em;text-transform:uppercase;margin-bottom:7px">Email công ty</label>
+      <input type="email" id="l-email" placeholder="ten@phuctea.com.vn" autocomplete="email"
+        style="width:100%;font-family:inherit;font-size:15px;padding:13px 16px;border:2px solid var(--border);border-radius:12px;color:var(--brown);outline:none;transition:border .2s"
+        onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
     </div>
-    <div id="l-err" style="color:var(--red);font-size:13px;margin:6px 0;min-height:18px;text-align:center"></div>
-    <button class="mbtn" id="l-btn">Đăng nhập</button>
-    <div style="display:flex;justify-content:space-between;margin-top:14px;font-size:13px">
-      <span style="color:var(--gray)">Chưa có tài khoản? <a href="https://zalo.me/0357636539" target="_blank" style="color:var(--gold);font-weight:600;text-decoration:none">Liên hệ Zalo</a></span>
-      <a href="https://zalo.me/0357636539" target="_blank" style="color:var(--brown-l);text-decoration:none">Quên mật khẩu?</a>
+
+    <!-- Password -->
+    <div style="margin-bottom:8px;position:relative">
+      <label style="display:block;font-size:11px;font-weight:700;color:var(--brown);letter-spacing:.06em;text-transform:uppercase;margin-bottom:7px">Mật khẩu</label>
+      <input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password"
+        style="width:100%;font-family:inherit;font-size:15px;padding:13px 48px 13px 16px;border:2px solid var(--border);border-radius:12px;color:var(--brown);outline:none;transition:border .2s"
+        onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+      <span id="l-pass-toggle" style="position:absolute;right:14px;bottom:13px;cursor:pointer;font-size:18px;line-height:1;color:var(--gray)">🐵</span>
     </div>
-    <div style="margin-top:14px;padding:10px 14px;background:var(--gold-l);border-radius:8px;font-size:12px;color:var(--brown-m);text-align:center">
-      📞 Hỗ trợ: <strong>Thanh Liêm</strong> — Operations Manager<br>
-      <a href="tel:0357636539" style="color:var(--brown);font-weight:700;text-decoration:none">0357 636 539</a> &nbsp;|&nbsp;
-      <a href="https://zalo.me/0357636539" target="_blank" style="color:var(--brown);font-weight:700;text-decoration:none">Zalo</a>
+
+    <!-- Error -->
+    <div id="l-err" style="color:var(--red);font-size:13px;margin:8px 0 4px;min-height:18px;text-align:center"></div>
+
+    <!-- Button -->
+    <button id="l-btn" style="width:100%;background:var(--gold);color:var(--brown);border:none;border-radius:12px;padding:15px;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;margin-top:4px;transition:opacity .15s;letter-spacing:.01em"
+      onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">Đăng nhập</button>
+
+    <!-- Register / Forgot -->
+    <div style="text-align:center;margin-top:18px;font-size:13px">
+      <a href="https://zalo.me/0357636539" target="_blank"
+        style="color:var(--gold);font-weight:700;text-decoration:none">Đăng ký / Quên mật khẩu</a>
+      <span style="color:var(--gray)"> — Liên hệ Thanh Liêm (Ops Manager)</span>
     </div>
+
   </div>
 </div>
 
@@ -796,7 +817,7 @@ function togglePassVis(id, el) {
   const inp = document.getElementById(id);
   if (!inp) return;
   inp.type = inp.type === 'password' ? 'text' : 'password';
-  el.textContent = inp.type === 'password' ? '👁' : '🙈';
+  el.textContent = inp.type === 'password' ? '🐵' : '🙈';
 }
 
 // ── Đăng nhập: gọi Apps Script để check NhanSu ───────────────
@@ -877,7 +898,7 @@ async function doLogin() {
 // ── Sau khi đăng nhập thành công ─────────────────────────────
 function afterLogin(user) {
   // Ẩn login modal
-  document.getElementById('login-modal').classList.add('off');
+  document.getElementById('login-modal').style.display='none';
   // Hiển thị tên user và nút đăng xuất trên nav
   const navUser = document.getElementById('nav-user');
   if (navUser) { navUser.textContent = (user.name || user.email); navUser.style.display = 'inline'; }
@@ -903,7 +924,7 @@ function doLogout() {
   // Reset data
   TX = []; ST = []; REC = [];
   // Hiển thị login
-  document.getElementById('login-modal').classList.remove('off');
+  document.getElementById('login-modal').style.display='flex';
   toast('Đã đăng xuất', 'tok');
 }
 
@@ -999,7 +1020,7 @@ window.addEventListener('load', async () => {
     afterLogin(user);
   } else {
     // Hiện màn hình login
-    document.getElementById('login-modal').classList.remove('off');
+    document.getElementById('login-modal').style.display='flex';
   }
 });
 
@@ -2566,7 +2587,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     const inp = document.getElementById('l-pass');
     if(!inp) return;
     inp.type = inp.type==='password' ? 'text' : 'password';
-    this.textContent = inp.type==='password' ? '👁' : '🙈';
+    this.textContent = inp.type==='password' ? '🐵' : '🙈';
   });
 
 });
