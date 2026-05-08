@@ -962,6 +962,16 @@ async function callOps(payload) {
   return data;
 }
 
+// ── Gọi API qua GET (tránh CORS) ─────────────────────────────
+async function callOpsGet(payload) {
+  if (!C.apiUrl) throw new Error('Chưa có API URL');
+  const data = encodeURIComponent(JSON.stringify(payload));
+  const url  = C.apiUrl + '?action=' + encodeURIComponent(payload.action) + '&data=' + data;
+  const res  = await fetch(url, { method: 'GET', mode: 'no-cors' });
+  // no-cors GET không trả response body — nhưng GS vẫn nhận và xử lý
+}
+
+
 // ── Session ──────────────────────────────────────────────────
 
 // ── LOAD CONFIG + DATA ───────────────────────────────────────
@@ -1420,8 +1430,7 @@ async function saveStoresToSheet(){
   if(!C.apiUrl){toast('Cần API URL để lưu lên Sheets','terr');openSetup();return;}
   load('Đang lưu danh sách cửa hàng...');
   try{
-    await fetch(C.apiUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({action:'saveStores',stores:ST})});
+    await callOpsGet({action:'saveStores',stores:ST});
     toast('✓ Đã lưu danh sách cửa hàng lên Sheets','tok');
   }catch(e){toast('Lỗi: '+e.message,'terr');}
   finally{unload();}
@@ -1522,8 +1531,7 @@ async function saveTx(){
   document.getElementById('tcat').value='';
   if(C.apiUrl){
     try{
-      await fetch(C.apiUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},
-        body:JSON.stringify({action:'addTransaction',...tx})});
+      await callOpsGet({action:'addTransaction',...tx});
       toast('✓ Đã lưu vào Sheets!','tok');
     }catch(e){toast('Lưu local OK, Sheets: '+e.message,'twarn');}
   }else{toast('✓ Lưu local (chưa có API)','twarn');}
@@ -1760,8 +1768,7 @@ async function sendOne(){
 
   load(isScheduled?'Đang lên lịch gửi email...':'Đang gửi email...');
   try{
-    await fetch(C.apiUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({
+    await callOpsGet({
         action:'sendEmail',
         email:to,
         subject:subj,
@@ -1770,7 +1777,7 @@ async function sendOne(){
         sendTime,
         scheduled:isScheduled,
         attachments: attachments
-      })});
+      });
     if(isScheduled){
       toast(`✅ Đã lên lịch gửi email lúc ${sendTime||'00:00'} ngày ${sendDate||'hôm nay'}!`,'tok');
     }else{
@@ -1841,8 +1848,7 @@ async function sendSelected(){
     }
 
     try{
-      await fetch(C.apiUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},
-        body:JSON.stringify({
+      await callOpsGet({
           action:'sendEmail',
           email:st.email,
           subject:subj,
@@ -1851,7 +1857,7 @@ async function sendSelected(){
           sendTime,
           scheduled:isScheduled,
           attachments: attachments
-        })});
+        });
       ok++;
     }catch(e){fail++;}
     document.getElementById('ltxt').textContent=`Đã xử lý ${ok+fail}/${selected.length}...`;
@@ -2241,8 +2247,7 @@ async function saveAiTxAll(){
     REC.unshift(txData);
     if(C.apiUrl){
       try{
-        await fetch(C.apiUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},
-          body:JSON.stringify({action:'addTransaction',...txData})});
+        await callOpsGet({action:'addTransaction',...txData});
         saved++;
       }catch(e){failed++;}
     } else { saved++; }
@@ -2619,8 +2624,7 @@ async function saveStore(){
   // Auto-push all stores to sheet
   if(C.apiUrl){
     try{
-      await fetch(C.apiUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},
-        body:JSON.stringify({action:'saveStores',stores:ST})});
+      await callOpsGet({action:'saveStores',stores:ST});
       toast('✓ Đã đồng bộ lên Sheets (bao gồm tên & SĐT chủ)','tok');
     }catch(e){toast('Lưu local OK, Sheets: '+e.message,'twarn');}
   }
@@ -2889,8 +2893,7 @@ async function saveXlsxAll(){
     TX.push(tx); REC.unshift(tx);
     if(C.apiUrl){
       try{
-        await fetch(C.apiUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},
-          body:JSON.stringify({action:'addTransaction',...tx})});
+        await callOpsGet({action:'addTransaction',...tx});
         saved++;
       }catch(e){failed++;}
     } else { saved++; }
@@ -3093,8 +3096,7 @@ async function updateScheduledEmail(){
   if(!id)return;
   load('Đang cập nhật...');
   try {
-    await fetch(C.apiUrl, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'},
-      body: JSON.stringify({action:'updateScheduledEmail', id, email, subject, sendDate, sendTime})});
+    await callOpsGet({action:'updateScheduledEmail', id, email, subject, sendDate, sendTime});
     toast('✓ Đã cập nhật lịch gửi','tok');
     closeEditScheduleModal();
     setTimeout(loadScheduledEmails, 1000);
@@ -3106,8 +3108,7 @@ async function cancelScheduledEmail(id){
   if(!confirm('Huỷ và xoá email đã lên lịch này?')) return;
   load('Đang huỷ...');
   try {
-    await fetch(C.apiUrl, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'},
-      body: JSON.stringify({action:'cancelScheduledEmail', id})});
+    await callOpsGet({action:'cancelScheduledEmail', id});
     toast('Đã huỷ lịch gửi email','twarn');
     setTimeout(loadScheduledEmails, 1000);
   } catch(e) { toast('Lỗi: '+e.message, 'terr'); }
