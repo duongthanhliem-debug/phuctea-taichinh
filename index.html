@@ -1174,8 +1174,8 @@ async function loadSheets(id){
 
   ST=parseCSV(sc).slice(1).filter(r=>r[0]&&clean(r[0])!=='ID').map(r=>({
     id:clean(r[0]),name:clean(r[1]),addr:clean(r[2]),area:clean(r[3]),
-    email:clean(r[4]),openDate:clean(r[5]),status:clean(r[6])||'active',
-    owner:clean(r[7])||'',phone:clean(r[8])||''
+    owner:clean(r[4])||'',phone:clean(r[5])||'',
+    email:clean(r[6]),openDate:clean(r[7]),status:clean(r[8])||'active',
   }));
 
   TX=parseCSV(tc).slice(1).filter(r=>r[0]&&clean(r[0])!=='ID').map(r=>({
