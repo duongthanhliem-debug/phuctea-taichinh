@@ -962,13 +962,29 @@ async function callOps(payload) {
   return data;
 }
 
-// ── Gọi API qua GET (tránh CORS) ─────────────────────────────
+// ── Gọi API qua GET (action nhỏ, không có data lớn) ──────────
 async function callOpsGet(payload) {
   if (!C.apiUrl) throw new Error('Chưa có API URL');
+  // saveStores có thể rất lớn → dùng POST riêng
+  if (payload.action === 'saveStores' || payload.action === 'sendEmail') {
+    return callOpsPost(payload);
+  }
   const data = encodeURIComponent(JSON.stringify(payload));
   const url  = C.apiUrl + '?action=' + encodeURIComponent(payload.action) + '&data=' + data;
-  const res  = await fetch(url, { method: 'GET', mode: 'no-cors' });
-  // no-cors GET không trả response body — nhưng GS vẫn nhận và xử lý
+  // Nếu URL quá dài (>2000 ký tự) → fallback sang POST
+  if (url.length > 2000) return callOpsPost(payload);
+  await fetch(url, { method: 'GET', mode: 'no-cors' });
+}
+
+// ── Gọi API qua POST no-cors (data lớn, write operations) ────
+async function callOpsPost(payload) {
+  if (!C.apiUrl) throw new Error('Chưa có API URL');
+  await fetch(C.apiUrl, {
+    method : 'POST',
+    mode   : 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body   : JSON.stringify(payload)
+  });
 }
 
 
@@ -1392,7 +1408,7 @@ function editStore(id){
 
 function closeStoreModal(){document.getElementById('store-modal').classList.add('off');}
 
-function saveStore(){
+async function saveStore(){
   const id=(document.getElementById('sf-id').value||'').trim().toUpperCase();
   const name=document.getElementById('sf-name').value.trim();
   const area=document.getElementById('sf-area').value.trim();
@@ -1417,6 +1433,14 @@ function saveStore(){
   closeStoreModal();
   fillSels();rStores();rDash();rBulk();
   toast(editingStoreId?'✓ Đã cập nhật cửa hàng':'✓ Đã thêm cửa hàng','tok');
+
+  // Lưu lên Sheets ngay
+  if(C.apiUrl){
+    try{
+      await callOpsPost({action:'saveStores',stores:ST});
+      toast('✓ Đã đồng bộ lên Sheets','tok');
+    }catch(e){toast('Lưu local OK — Sheets: '+e.message,'twarn');}
+  }
 }
 
 function delStore(id){
@@ -1430,11 +1454,11 @@ async function saveStoresToSheet(){
   if(!C.apiUrl){toast('Cần API URL để lưu lên Sheets','terr');openSetup();return;}
   load('Đang lưu danh sách cửa hàng...');
   try{
-    await callOpsGet({action:'saveStores',stores:ST});
+    await callOpsPost({action:'saveStores',stores:ST});
     toast('✓ Đã lưu danh sách cửa hàng lên Sheets','tok');
   }catch(e){toast('Lỗi: '+e.message,'terr');}
   finally{unload();}
-}
+}}
 
 // ===== P&L =====
 function gopl(id){document.getElementById('pls').value=id;go('pl');rPL();}
@@ -2598,38 +2622,6 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 
 // ===== STORE SAVE — auto sync owner+phone to Sheet =====
-const _origSaveStore=saveStore;
-// Monkey-patch saveStore to also push individual store update to Sheets
-async function saveStore(){
-  const id=(document.getElementById('sf-id').value||'').trim().toUpperCase();
-  const name=document.getElementById('sf-name').value.trim();
-  const area=document.getElementById('sf-area').value.trim();
-  const addr=document.getElementById('sf-addr').value.trim();
-  const email=document.getElementById('sf-email').value.trim();
-  const owner=document.getElementById('sf-owner').value.trim();
-  const phone=document.getElementById('sf-phone').value.trim();
-  const openDate=document.getElementById('sf-date').value;
-  const status=document.getElementById('sf-status').value;
-  if(!id){toast('Vui lòng nhập ID cửa hàng','terr');return;}
-  if(!name){toast('Vui lòng nhập tên cửa hàng','terr');return;}
-  if(editingStoreId){
-    const idx=ST.findIndex(s=>s.id===editingStoreId);
-    if(idx>=0)ST[idx]={id:editingStoreId,name,area,addr,email,owner,phone,openDate,status};
-  }else{
-    if(ST.find(s=>s.id===id)){toast('ID đã tồn tại!','terr');return;}
-    ST.push({id,name,area,addr,email,owner,phone,openDate,status});
-  }
-  closeStoreModal();fillSels();rStores();rDash();rBulk();
-  toast(editingStoreId?'✓ Đã cập nhật cửa hàng':'✓ Đã thêm cửa hàng','tok');
-  // Auto-push all stores to sheet
-  if(C.apiUrl){
-    try{
-      await callOpsGet({action:'saveStores',stores:ST});
-      toast('✓ Đã đồng bộ lên Sheets (bao gồm tên & SĐT chủ)','tok');
-    }catch(e){toast('Lưu local OK, Sheets: '+e.message,'twarn');}
-  }
-}
-
 
 let xlsxData = null;
 let xlsxPendingTx = [];
