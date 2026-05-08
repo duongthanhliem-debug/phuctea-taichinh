@@ -1237,17 +1237,6 @@ function doDemo(){
   loadDemo();renderAll();toast('Dùng dữ liệu demo','twarn');
 }
 
-async function reload(){
-  if(C.demo){loadDemo();renderAll();return;}
-  if(!C.sheetId){openSetup();return;}
-  load('Đang tải từ Sheets...');
-  try{
-    await loadSheets(C.sheetId);
-    renderAll();toast('✓ Cập nhật xong','tok');
-  }
-  catch(e){toast('Lỗi: '+e.message,'terr');}
-  finally{unload();}
-}
 
 function save(){localStorage.setItem('ptcfg',JSON.stringify(C));}
 
@@ -1458,7 +1447,7 @@ async function saveStoresToSheet(){
     toast('✓ Đã lưu danh sách cửa hàng lên Sheets','tok');
   }catch(e){toast('Lỗi: '+e.message,'terr');}
   finally{unload();}
-}}
+}
 
 // ===== P&L =====
 function gopl(id){document.getElementById('pls').value=id;go('pl');rPL();}
