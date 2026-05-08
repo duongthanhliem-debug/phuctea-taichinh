@@ -166,6 +166,7 @@ textarea.fc{resize:vertical;min-height:120px;line-height:1.6}
 .store-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .sdot-g{background:var(--green)}
 .sdot-r{background:var(--red)}
+.sdot-y{background:var(--gold)}
 
 /* MOBILE */
 @media(max-width:768px){
@@ -360,6 +361,12 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
         <option value="lo">Đang lỗ</option>
         <option value="canh-bao">Cảnh báo NVL</option>
       </select>
+      <select class="fsel" id="dstatus" onchange="rDash()">
+        <option value="active">Đang hoạt động</option>
+        <option value="">Tất cả trạng thái</option>
+        <option value="inactive">Tạm dừng</option>
+        <option value="closed">Đã đóng cửa</option>
+      </select>
       <button class="btn bo" onclick="reload()">🔄 Làm mới</button>
       <button class="btn bp" onclick="go('email')">📧 Báo cáo</button>
     </div>
@@ -394,6 +401,12 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
   <div class="ph">
     <div><div class="pt">Quản lý cửa hàng</div><div class="ps" id="ssub">Danh sách nhượng quyền</div></div>
     <div class="fb">
+      <select class="fsel" id="sfilter-status" onchange="rStores()">
+        <option value="active">Đang hoạt động</option>
+        <option value="">Tất cả trạng thái</option>
+        <option value="inactive">Tạm dừng</option>
+        <option value="closed">Đã đóng cửa</option>
+      </select>
       <button class="btn bp" onclick="openAddStore()">+ Thêm cửa hàng</button>
       <button class="btn bo" onclick="saveStoresToSheet()">💾 Lưu lên Sheets</button>
     </div>
@@ -431,6 +444,7 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
       <select class="minput" id="sf-status">
         <option value="active">Đang hoạt động</option>
         <option value="inactive">Tạm dừng</option>
+        <option value="closed">Đã đóng cửa</option>
       </select>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
@@ -1290,6 +1304,7 @@ function rDash(){
   const m=document.getElementById('dm').value;
   const y=document.getElementById('dy').value;
   const filter=document.getElementById('dfilter').value;
+  const statusFilter=document.getElementById('dstatus').value;
 
   // Admin chỉ xem cửa hàng của mình
   const user = getUser();
@@ -1298,6 +1313,9 @@ function rDash(){
     const allowed = user.stores.map(s => s.trim().toUpperCase());
     visibleST = ST.filter(s => allowed.includes((s.id||'').trim().toUpperCase()));
   }
+
+  // Lọc theo trạng thái (mặc định chỉ active)
+  if(statusFilter) visibleST = visibleST.filter(s => s.status === statusFilter);
 
   let ss=agg(m,y).filter(s => visibleST.some(vs => vs.id === s.id));
 
@@ -1349,13 +1367,25 @@ function rDash(){
 
 // ===== STORES =====
 function rStores(){
-  document.getElementById('ssub').textContent=ST.length+' cửa hàng trong hệ thống';
-  document.getElementById('store-count').textContent=ST.length+' cửa hàng';
+  const statusFilter = (document.getElementById('sfilter-status')||{}).value ?? 'active';
+  let filtered = ST;
+  if(statusFilter) filtered = ST.filter(s => s.status === statusFilter);
+
+  const statusLabel = {'active':'Đang hoạt động','inactive':'Tạm dừng','closed':'Đã đóng cửa','':''};
+  document.getElementById('ssub').textContent = filtered.length + ' cửa hàng' + (statusFilter ? ' — ' + statusLabel[statusFilter] : ' trong hệ thống');
+  document.getElementById('store-count').textContent = filtered.length + ' cửa hàng';
   const list=document.getElementById('store-list');
-  if(!ST.length){list.innerHTML='<div class="empty2">Chưa có cửa hàng nào. Bấm "+ Thêm cửa hàng"</div>';return;}
-  list.innerHTML=ST.map(s=>`
+  if(!filtered.length){list.innerHTML='<div class="empty2">Không có cửa hàng nào phù hợp.</div>';return;}
+
+  function dotClass(status){
+    if(status==='active') return 'sdot-g';
+    if(status==='closed') return 'sdot-y';
+    return 'sdot-r';
+  }
+
+  list.innerHTML=filtered.map(s=>`
     <div class="store-row">
-      <div class="store-dot ${s.status==='active'?'sdot-g':'sdot-r'}"></div>
+      <div class="store-dot ${dotClass(s.status)}"></div>
       <div style="flex:1;min-width:0">
         <div style="font-weight:600;font-size:14px">${s.name||s.id}</div>
         <div style="font-size:12px;color:var(--gray)">${s.area||''} · ${s.owner?'👤 '+s.owner+(s.phone?' ('+s.phone+')':'')+ ' · ':''}${s.email||'Chưa có email'} · Mở: ${s.openDate||'—'}</div>
