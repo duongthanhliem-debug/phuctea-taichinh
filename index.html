@@ -628,9 +628,9 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
 
     <!-- Excel Import Chi -->
     <div class="card">
-      <div class="ch" style="background:linear-gradient(135deg,var(--brown),var(--brown-m))">
-        <div class="ct" style="color:#fff;font-size:13px">📉 Nhập từ Excel Chi (iPos/Fabi)</div>
-        <span style="font-size:10px;background:var(--gold);color:var(--brown);padding:2px 8px;border-radius:10px;font-weight:700">AUTO</span>
+      <div class="ch" style="background:linear-gradient(135deg,#b8860b,var(--gold))">
+        <div class="ct" style="color:var(--brown);font-size:13px;font-weight:700">📉 Nhập từ Excel Chi (iPos/Fabi)</div>
+        <span style="font-size:10px;background:var(--brown);color:var(--gold);padding:2px 8px;border-radius:10px;font-weight:700">AUTO</span>
       </div>
       <div class="cb">
         <div style="font-size:11px;color:var(--gray);background:var(--gray-l);border-radius:var(--rs);padding:9px;margin-bottom:10px;line-height:1.6">📉 <strong>File Chi (iPos Cash Out):</strong> Fabi → Báo cáo thu chi → Xuất file Chi tiêu → Up file gốc lên đây. Web tự phân loại danh mục từ ghi chú, không cần AI.</div>
@@ -1086,27 +1086,13 @@ window.addEventListener('load', async () => {
   if (typeof buildCats === 'function') buildCats('thu');
   const sigEl = document.getElementById('e-sig');
   if (sigEl && typeof emailEdits !== 'undefined') sigEl.value = emailEdits.sig || '';
-  // Set default: tháng gần nhất có dữ liệu thu, fallback tháng hiện tại
+  // Set default tháng/năm: sẽ được cập nhật sau khi load data (trong renderAll)
+  // Tạm set năm hiện tại, tháng sẽ được set đúng sau khi TX load xong
   const now = new Date();
-  const todayM = now.getMonth()+1;
-  const todayY = now.getFullYear();
-
-  function findLatestDataMonth(){
-    if(!TX.length) return {m:String(todayM), y:String(todayY)};
-    // Lấy tất cả tháng/năm có doanh thu, sort giảm dần
-    const pairs = [...new Set(
-      TX.filter(t=>t.type==='thu').map(t=>t.year+'-'+t.month)
-    )].sort().reverse();
-    if(!pairs.length) return {m:String(todayM), y:String(todayY)};
-    const [y, mPad] = pairs[0].split('-');
-    return {m:String(parseInt(mPad)), y}; // "05"→"5" cho dropdown
-  }
-
-  const {m:defM, y:defY} = findLatestDataMonth();
-
-  // Áp dụng cho tất cả dropdowns
-  ['dm','em','plm'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=defM;});
-  ['dy','ey','ply'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=defY;});
+  const todayM = String(now.getMonth()+1);
+  const todayY = String(now.getFullYear());
+  ['dm','em','plm'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=todayM;});
+  ['dy','ey','ply'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=todayY;});
 
   // Tải config trước (để có OPS_API_URL cho login)
   await bootstrapConfig();
@@ -1334,7 +1320,23 @@ function agg(month,year){
 }
 
 // ===== RENDER ALL =====
+let _defaultMonthSet = false;
+function setDefaultMonth(){
+  if(_defaultMonthSet || !TX.length) return;
+  const thuTx = TX.filter(t=>t.type==='thu');
+  if(!thuTx.length) return;
+  // Lấy tháng/năm gần nhất có thu, sort giảm dần
+  const pairs = [...new Set(thuTx.map(t=>t.year+'-'+t.month))].sort().reverse();
+  if(!pairs.length) return;
+  const [y, mPad] = pairs[0].split('-');
+  const m = String(parseInt(mPad)); // "05"→"5"
+  ['dm','em','plm'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=m;});
+  ['dy','ey','ply'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=y;});
+  _defaultMonthSet = true;
+}
+
 function renderAll(){
+  setDefaultMonth(); // set tháng gần nhất có data (chỉ lần đầu)
   fillSels();rDash();rPL();rStores();rBulk();updateApiSt();
   const schedPage = document.getElementById('p-schedule');
   if(schedPage && schedPage.classList.contains('on')) loadScheduledEmails();
@@ -2135,7 +2137,15 @@ const AI_CATEGORY_HINTS = {
   'nhập đồ ăn vặt':'Nhập đồ ăn vặt',
 };
 
-// Map danh mục từ file chi Excel (cột E) sang danh mục web
+// Danh sách danh mục chi đầy đủ cho dropdown
+const CHI_CATEGORIES = [
+  'NVL hệ thống','NVL địa phương','Chi phí vận chuyển','Vật phẩm','Công nợ',
+  'Nhập đồ ăn vặt','Lương NV pha chế','Lương quản lý','Mặt bằng','Tiền điện',
+  'Tiền nước','Internet','Gas','Royalty Fee','Phí duy trì','Chiết khấu food app',
+  'Marketing','Sửa chữa','Thuế','Hao phí','Nước đá','Nước lọc','Mua hoa',
+  'Chiết khấu CTKM','Xăng','Công cụ dụng cụ','Chi phí tài sản cố định',
+  'Chi phí in ấn tài liệu','Chi phí tâm linh','Chi phí khác'
+];
 function mapChiCategory(colE, colG){
   const e = (colE||'').toLowerCase().trim();
   const g = (colG||'').toLowerCase().trim();
@@ -3011,11 +3021,21 @@ function renderChiResults(parsed){
           </div>
           <div id="${expandId}" style="display:none;padding:0 10px 8px;background:var(--gray-l)">`;
         g.items.forEach((tx, iIdx) => {
-          html += `<div style="display:grid;grid-template-columns:80px 1fr auto;gap:6px;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px">
-            <span style="color:var(--gray)">${tx.date||''}</span>
-            <span style="color:var(--brown)">${tx.note||tx._colG||cat}</span>
-            <span style="color:var(--brown-m);font-weight:600">${fvnd(tx.amount)}</span>
+          const itemId = `chiitem-${si}-${mk}-${cat.replace(/[^a-z0-9]/gi,'_')}-${iIdx}`;
+          const catOpts = CHI_CATEGORIES
+            .map(c=>`<option value="${c}"${c===tx.category?' selected':''}>${c}</option>`).join('');
+          html += `<div style="padding:7px 0;border-bottom:1px solid var(--border);display:grid;gap:4px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              <input type="date" value="${tx.date||''}" style="font-family:inherit;font-size:11px;padding:4px 6px;border:1px solid var(--border);border-radius:4px" onchange="updateChiItem('${itemId}','date',this.value)">
+              <input type="number" value="${tx.amount}" style="font-family:inherit;font-size:11px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;text-align:right" onchange="updateChiItem('${itemId}','amount',this.value)">
+            </div>
+            <select style="width:100%;font-family:inherit;font-size:11px;padding:4px 6px;border:1px solid var(--border);border-radius:4px" onchange="updateChiItem('${itemId}','category',this.value)">
+              ${catOpts}
+            </select>
+            <input type="text" value="${(tx.note||tx._colG||'').replace(/"/g,'&quot;')}" placeholder="Ghi chú..." style="width:100%;font-family:inherit;font-size:11px;padding:4px 6px;border:1px solid var(--border);border-radius:4px" onchange="updateChiItem('${itemId}','note',this.value)">
           </div>`;
+          // Store item reference
+          tx._itemId = itemId;
         });
         html += `</div></div>`;
       });
@@ -3037,6 +3057,25 @@ function toggleChiExpand(id, headerEl){
   el.style.display = isOpen ? 'none' : 'block';
   const arrow = headerEl.querySelector('span:last-child');
   if(arrow) arrow.textContent = isOpen ? '▼ Chi tiết' : '▲ Thu gọn';
+}
+
+function updateChiItem(itemId, field, value){
+  if(!window._chiParsed) return;
+  window._chiParsed.forEach(sheet => {
+    sheet.txList.forEach(tx => {
+      if(tx._itemId === itemId){
+        if(field === 'amount') tx.amount = parseFloat(value)||0;
+        else if(field === 'date') {
+          tx.date = value;
+          const d = value.split('-');
+          if(d.length===3){ tx.month=d[1]; tx.year=d[0]; }
+        }
+        else if(field === 'category') tx.category = value;
+        else if(field === 'note') tx.note = value;
+      }
+    });
+  });
+  rebuildChiTx();
 }
 
 function rebuildChiTx(){
