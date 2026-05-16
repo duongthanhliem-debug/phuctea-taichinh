@@ -628,7 +628,7 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
 
     <!-- Excel Import Chi -->
     <div class="card">
-      <div class="ch" style="background:linear-gradient(135deg,#b8860b,var(--gold))">
+      <div class="ch" style="background:var(--gold)">
         <div class="ct" style="color:var(--brown);font-size:13px;font-weight:700">📉 Nhập từ Excel Chi (iPos/Fabi)</div>
         <span style="font-size:10px;background:var(--brown);color:var(--gold);padding:2px 8px;border-radius:10px;font-weight:700">AUTO</span>
       </div>
@@ -1252,8 +1252,11 @@ async function loadSheets(id){
   }));
 
   TX=parseCSV(tc).slice(1).filter(r=>r[0]&&clean(r[0])!=='ID').map(r=>({
-    date:clean(r[1]),month:clean(r[2]),year:clean(r[3]),store:clean(r[4]),
-    type:clean(r[5]),category:clean(r[6]),amount:parseNum(r[7]),note:clean(r[8])||''
+    date:clean(r[1]),
+    month:String(parseInt(clean(r[2])||'0')).padStart(2,'0'), // normalize "5"→"05"
+    year:clean(r[3]),store:clean(r[4]),
+    type:clean(r[5]).toLowerCase(), // normalize "Thu"→"thu"
+    category:clean(r[6]),amount:parseNum(r[7]),note:clean(r[8])||''
   }));
 
   if(!ST.length)throw new Error('Sheet "Cửa hàng" trống. Chạy taoSheet() trước.');
@@ -1654,8 +1657,7 @@ async function saveTx(){
   if(saveBtn){saveBtn.disabled=true;saveBtn.textContent='⏳ Đang lưu...';}
   load('Đang lưu giao dịch...');
   const d=date.split('-');
-  const tx={date,month:d[1],year:d[0],store,type,category:cat,amount:amt,note};
-  TX.push(tx);REC.unshift(tx);rRec();
+  const tx={date,month:d[1],year:d[0],store,type,category:cat,amount:amt,note};  TX.push(tx);REC.unshift(tx);rRec();
   document.getElementById('tamt').value='';
   document.getElementById('tnote').value='';
   document.querySelectorAll('.cb3').forEach(b=>b.classList.remove('on'));
