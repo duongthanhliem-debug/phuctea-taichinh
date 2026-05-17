@@ -2924,12 +2924,14 @@ async function saveChiXlsxAll(){
   load(`Đang lưu ${validTx.length} khoản chi...`);
   try{
     TX.push(...validTx);
+    validTx.forEach(tx=>REC.unshift(tx));
     if(C.apiUrl){
       for(const tx of validTx){
         await callOpsGet({action:'addTransaction',...tx});
       }
       toast(`✓ Đã lưu ${validTx.length} khoản chi lên Sheets`,'tok');
     }else{toast(`✓ Đã lưu ${validTx.length} khoản chi (local)`,'twarn');}
+    rRec();
     renderAll();
     clearChiXlsx();
   }catch(e){toast('Lỗi: '+e.message,'terr');}
@@ -3023,7 +3025,7 @@ function renderChiResults(parsed){
         const catSelectOpts = CHI_CATEGORIES.map(c=>`<option value="${c}"${c===cat?' selected':''}>${c}</option>`).join('');
         totalCats++;
         html += `<div style="margin-bottom:6px;border:1px solid var(--border);border-radius:8px;overflow:hidden">
-          <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:6px;align-items:center;padding:7px 10px;background:var(--white)">
+          <div style="display:grid;grid-template-columns:1fr auto auto auto auto;gap:6px;align-items:center;padding:7px 10px;background:var(--white)">
             <select style="font-family:inherit;font-size:12px;font-weight:600;color:var(--brown);border:none;background:transparent;cursor:pointer;padding:0;max-width:100%"
               onclick="event.stopPropagation()"
               onchange="renameChiCatGroup(this,'${si}','${mk}','${cat.replace(/'/g,"\\'")}','${expandId}',this.value)">
@@ -3031,6 +3033,7 @@ function renderChiResults(parsed){
             </select>
             <input type="number" id="${catId}-amt" value="${g.total}" style="width:110px;text-align:right;font-family:inherit;font-size:12px;padding:4px 6px;border:1px solid var(--border);border-radius:4px" onchange="rebuildChiTx()">
             <span style="font-size:11px;color:var(--gray)">₫</span>
+            <span title="Tách từng giao dịch thành nhóm riêng" style="font-size:11px;color:var(--gray);cursor:pointer;padding:2px 6px;border:1px solid var(--border);border-radius:4px" onclick="splitChiCatGroup('${si}','${mk}','${cat}')">✂️ Tách</span>
             <span style="font-size:11px;color:var(--gold);white-space:nowrap;cursor:pointer" onclick="toggleChiExpand('${expandId}',this)">▼ Chi tiết</span>
           </div>
           <div id="${expandId}" style="display:none;padding:0 10px 8px;background:var(--gray-l)">`;
@@ -3068,13 +3071,28 @@ function renameChiCatGroup(selectEl, si, mk, oldCat, expandId, newCat){
   if(!window._chiParsed || !newCat || newCat === oldCat) return;
   const sheet = window._chiParsed[parseInt(si)];
   if(!sheet) return;
-  // Cập nhật category tất cả item trong nhóm này → re-render để gộp đúng
   sheet.txList.forEach(tx => {
     if(tx.category === oldCat && (tx.year+'-'+tx.month) === mk){
       tx.category = newCat;
     }
   });
   renderChiResults(window._chiParsed);
+}
+
+// ✂️ Tách nhóm: re-map từng item theo ghi chú gốc → tách thành nhóm riêng nếu khác nhau
+function splitChiCatGroup(si, mk, cat){
+  if(!window._chiParsed) return;
+  const sheet = window._chiParsed[parseInt(si)];
+  if(!sheet) return;
+  let changed = false;
+  sheet.txList.forEach(tx => {
+    if(tx.category === cat && (tx.year+'-'+tx.month) === mk){
+      const guessed = mapChiCategory(tx._colE||'', tx._colG||tx.note||'');
+      if(guessed !== cat){ tx.category = guessed; changed = true; }
+    }
+  });
+  if(changed) renderChiResults(window._chiParsed);
+  else toast('Không tách được — hãy sửa từng item thủ công trong ▼ Chi tiết','twarn');
 }
 
 function toggleChiExpand(id, headerEl){
