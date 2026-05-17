@@ -2874,6 +2874,7 @@ function handleChiXlsxDrop(e){
 }
 function handleChiXlsxSelect(e){
   const f=e.target.files[0];
+  e.target.value=''; // reset để onchange fire kể cả khi chọn lại cùng file
   if(f){ chiXlsxFile=f; processChiXlsxFile(f); }
 }
 function processChiXlsxFile(file){
@@ -2882,8 +2883,14 @@ function processChiXlsxFile(file){
   document.getElementById('chi-xlsx-confirm-bar').style.display='none';
   const info=document.getElementById('chi-xlsx-file-info');
   info.style.display='block';
-  info.textContent=`📄 ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+  info.innerHTML=`📄 <strong>${file.name}</strong> (${(file.size/1024).toFixed(1)} KB)
+    <button onclick="triggerChiFileInput()" style="margin-left:10px;font-family:inherit;font-size:11px;padding:3px 10px;border:1px solid var(--border);border-radius:6px;background:var(--white);cursor:pointer;color:var(--brown)">📂 Đổi file</button>`;
   document.getElementById('btn-chi-xlsx-analyze').style.display='flex';
+}
+function triggerChiFileInput(){
+  const inp = document.getElementById('chi-xlsx-file-input');
+  inp.value='';
+  inp.click();
 }
 async function analyzeChiXlsx(){
   if(!chiXlsxFile){toast('Chọn file Excel chi trước','terr');return;}
@@ -3013,13 +3020,18 @@ function renderChiResults(parsed){
       Object.entries(byCat).forEach(([cat, g]) => {
         const catId = `chi-${si}-${mk}-${cat.replace(/[^a-z0-9]/gi,'_')}`;
         const expandId = `chi-exp-${catId}`;
+        const catSelectOpts = CHI_CATEGORIES.map(c=>`<option value="${c}"${c===cat?' selected':''}>${c}</option>`).join('');
         totalCats++;
         html += `<div style="margin-bottom:6px;border:1px solid var(--border);border-radius:8px;overflow:hidden">
-          <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:6px;align-items:center;padding:7px 10px;background:var(--white);cursor:pointer" onclick="toggleChiExpand('${expandId}',this)">
-            <span style="font-size:12px;font-weight:600;color:var(--brown)">${cat} <span style="font-size:11px;font-weight:400;color:var(--gray)">(${g.items.length})</span></span>
-            <input type="number" id="${catId}-amt" value="${g.total}" style="width:110px;text-align:right;font-family:inherit;font-size:12px;padding:4px 6px;border:1px solid var(--border);border-radius:4px" onclick="event.stopPropagation()" onchange="rebuildChiTx()">
+          <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:6px;align-items:center;padding:7px 10px;background:var(--white)">
+            <select style="font-family:inherit;font-size:12px;font-weight:600;color:var(--brown);border:none;background:transparent;cursor:pointer;padding:0;max-width:100%"
+              onclick="event.stopPropagation()"
+              onchange="renameChiCatGroup(this,'${si}','${mk}','${cat.replace(/'/g,"\\'")}','${expandId}',this.value)">
+              ${catSelectOpts}
+            </select>
+            <input type="number" id="${catId}-amt" value="${g.total}" style="width:110px;text-align:right;font-family:inherit;font-size:12px;padding:4px 6px;border:1px solid var(--border);border-radius:4px" onchange="rebuildChiTx()">
             <span style="font-size:11px;color:var(--gray)">₫</span>
-            <span style="font-size:11px;color:var(--gold);white-space:nowrap">▼ Chi tiết</span>
+            <span style="font-size:11px;color:var(--gold);white-space:nowrap;cursor:pointer" onclick="toggleChiExpand('${expandId}',this)">▼ Chi tiết</span>
           </div>
           <div id="${expandId}" style="display:none;padding:0 10px 8px;background:var(--gray-l)">`;
         g.items.forEach((tx, iIdx) => {
@@ -3052,6 +3064,19 @@ function renderChiResults(parsed){
   document.getElementById('chi-xlsx-confirm-bar').style.display = totalCats ? 'block' : 'none';
 }
 
+function renameChiCatGroup(selectEl, si, mk, oldCat, expandId, newCat){
+  if(!window._chiParsed || !newCat || newCat === oldCat) return;
+  const sheet = window._chiParsed[parseInt(si)];
+  if(!sheet) return;
+  // Cập nhật category tất cả item trong nhóm này → re-render để gộp đúng
+  sheet.txList.forEach(tx => {
+    if(tx.category === oldCat && (tx.year+'-'+tx.month) === mk){
+      tx.category = newCat;
+    }
+  });
+  renderChiResults(window._chiParsed);
+}
+
 function toggleChiExpand(id, headerEl){
   const el = document.getElementById(id);
   if(!el) return;
@@ -3067,13 +3092,18 @@ function updateChiItem(itemId, field, value){
     sheet.txList.forEach(tx => {
       if(tx._itemId === itemId){
         if(field === 'amount') tx.amount = parseFloat(value)||0;
-        else if(field === 'date') {
+        else if(field === 'date'){
           tx.date = value;
           const d = value.split('-');
-          if(d.length===3){ tx.month=d[1]; tx.year=d[0]; }
+          if(d.length===3){ tx.month=d[1].padStart(2,'0'); tx.year=d[0]; }
         }
-        else if(field === 'category') tx.category = value;
         else if(field === 'note') tx.note = value;
+        else if(field === 'category'){
+          tx.category = value;
+          // Re-render để item tự nhảy vào đúng nhóm
+          renderChiResults(window._chiParsed);
+          return;
+        }
       }
     });
   });
