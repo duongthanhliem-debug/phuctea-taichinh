@@ -3025,7 +3025,7 @@ function renderChiResults(parsed){
         const catSelectOpts = CHI_CATEGORIES.map(c=>`<option value="${c}"${c===cat?' selected':''}>${c}</option>`).join('');
         totalCats++;
         html += `<div style="margin-bottom:6px;border:1px solid var(--border);border-radius:8px;overflow:hidden">
-          <div style="display:grid;grid-template-columns:1fr auto auto auto auto;gap:6px;align-items:center;padding:7px 10px;background:var(--white)">
+          <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:6px;align-items:center;padding:7px 10px;background:var(--white)">
             <select style="font-family:inherit;font-size:12px;font-weight:600;color:var(--brown);border:none;background:transparent;cursor:pointer;padding:0;max-width:100%"
               onclick="event.stopPropagation()"
               onchange="renameChiCatGroup(this,'${si}','${mk}','${cat.replace(/'/g,"\\'")}','${expandId}',this.value)">
@@ -3033,10 +3033,10 @@ function renderChiResults(parsed){
             </select>
             <input type="number" id="${catId}-amt" value="${g.total}" style="width:110px;text-align:right;font-family:inherit;font-size:12px;padding:4px 6px;border:1px solid var(--border);border-radius:4px" onchange="rebuildChiTx()">
             <span style="font-size:11px;color:var(--gray)">₫</span>
-            <span title="Tách từng giao dịch thành nhóm riêng" style="font-size:11px;color:var(--gray);cursor:pointer;padding:2px 6px;border:1px solid var(--border);border-radius:4px" onclick="splitChiCatGroup('${si}','${mk}','${cat}')">✂️ Tách</span>
             <span style="font-size:11px;color:var(--gold);white-space:nowrap;cursor:pointer" onclick="toggleChiExpand('${expandId}',this)">▼ Chi tiết</span>
           </div>
-          <div id="${expandId}" style="display:none;padding:0 10px 8px;background:var(--gray-l)">`;
+          <div id="${expandId}" style="display:none;padding:6px 10px 8px;background:var(--gray-l)">
+            <div style="font-size:10px;color:var(--gray);margin-bottom:6px;font-style:italic">💡 Đổi danh mục của từng item → item tự nhảy sang nhóm đúng</div>`;
         g.items.forEach((tx, iIdx) => {
           const itemId = `chiitem-${si}-${mk}-${cat.replace(/[^a-z0-9]/gi,'_')}-${iIdx}`;
           const catOpts = CHI_CATEGORIES
@@ -3079,22 +3079,6 @@ function renameChiCatGroup(selectEl, si, mk, oldCat, expandId, newCat){
   renderChiResults(window._chiParsed);
 }
 
-// ✂️ Tách nhóm: re-map từng item theo ghi chú gốc → tách thành nhóm riêng nếu khác nhau
-function splitChiCatGroup(si, mk, cat){
-  if(!window._chiParsed) return;
-  const sheet = window._chiParsed[parseInt(si)];
-  if(!sheet) return;
-  let changed = false;
-  sheet.txList.forEach(tx => {
-    if(tx.category === cat && (tx.year+'-'+tx.month) === mk){
-      const guessed = mapChiCategory(tx._colE||'', tx._colG||tx.note||'');
-      if(guessed !== cat){ tx.category = guessed; changed = true; }
-    }
-  });
-  if(changed) renderChiResults(window._chiParsed);
-  else toast('Không tách được — hãy sửa từng item thủ công trong ▼ Chi tiết','twarn');
-}
-
 function toggleChiExpand(id, headerEl){
   const el = document.getElementById(id);
   if(!el) return;
@@ -3106,26 +3090,22 @@ function toggleChiExpand(id, headerEl){
 
 function updateChiItem(itemId, field, value){
   if(!window._chiParsed) return;
+  let needRerender = false;
   window._chiParsed.forEach(sheet => {
     sheet.txList.forEach(tx => {
-      if(tx._itemId === itemId){
-        if(field === 'amount') tx.amount = parseFloat(value)||0;
-        else if(field === 'date'){
-          tx.date = value;
-          const d = value.split('-');
-          if(d.length===3){ tx.month=d[1].padStart(2,'0'); tx.year=d[0]; }
-        }
-        else if(field === 'note') tx.note = value;
-        else if(field === 'category'){
-          tx.category = value;
-          // Re-render để item tự nhảy vào đúng nhóm
-          renderChiResults(window._chiParsed);
-          return;
-        }
+      if(tx._itemId !== itemId) return;
+      if(field === 'amount')  tx.amount = parseFloat(value)||0;
+      else if(field === 'date'){
+        tx.date = value;
+        const d = value.split('-');
+        if(d.length===3){ tx.month=d[1].padStart(2,'0'); tx.year=d[0]; }
       }
+      else if(field === 'note') tx.note = value;
+      else if(field === 'category'){ tx.category = value; needRerender = true; }
     });
   });
-  rebuildChiTx();
+  if(needRerender) renderChiResults(window._chiParsed); // re-render để item nhảy đúng nhóm
+  else rebuildChiTx();
 }
 
 function rebuildChiTx(){
