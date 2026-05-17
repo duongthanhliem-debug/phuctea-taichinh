@@ -3090,7 +3090,6 @@ function toggleChiExpand(id, headerEl){
 
 function updateChiItem(itemId, field, value){
   if(!window._chiParsed) return;
-  let needRerender = false;
   window._chiParsed.forEach(sheet => {
     sheet.txList.forEach(tx => {
       if(tx._itemId !== itemId) return;
@@ -3101,11 +3100,14 @@ function updateChiItem(itemId, field, value){
         if(d.length===3){ tx.month=d[1].padStart(2,'0'); tx.year=d[0]; }
       }
       else if(field === 'note') tx.note = value;
-      else if(field === 'category'){ tx.category = value; needRerender = true; }
+      else if(field === 'category'){
+        tx.category = value;
+        // Đánh dấu có thay đổi chưa áp dụng
+        document.getElementById('chi-apply-bar').style.display='flex';
+      }
     });
   });
-  if(needRerender) renderChiResults(window._chiParsed); // re-render để item nhảy đúng nhóm
-  else rebuildChiTx();
+  rebuildChiTx();
 }
 
 function rebuildChiTx(){
