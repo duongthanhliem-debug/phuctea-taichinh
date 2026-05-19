@@ -3068,6 +3068,8 @@ function renderChiResults(parsed){
   container.innerHTML = html;
   window._chiParsed = parsed;
   rebuildChiTx();
+  const applyBar = document.getElementById('chi-apply-bar-fixed');
+  if(applyBar) applyBar.style.display='flex';
 
   document.getElementById('chi-xlsx-confirm-summary').textContent = `Tìm thấy ${totalCats} danh mục chi. Kiểm tra cửa hàng và số liệu trước khi lưu.`;
   document.getElementById('chi-xlsx-confirm-bar').style.display = totalCats ? 'block' : 'none';
