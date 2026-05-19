@@ -651,8 +651,8 @@ input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--go
           <div class="dot"></div><div class="dot"></div><div class="dot"></div>
           <span id="chi-xlsx-thinking-txt">Đang đọc file chi...</span>
         </div>
-        <div id="chi-apply-bar-fixed" style="display:none;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;background:var(--gold-l);border-radius:8px;margin-top:8px;border:1.5px solid var(--gold)">
-          <span style="font-size:12px;color:var(--brown);font-weight:600">⚠️ Có thay đổi danh mục chưa áp dụng</span>
+        <div id="chi-apply-bar-fixed" style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;background:var(--gold-l);border-radius:8px;margin-top:8px;border:1.5px solid var(--gold)">
+          <span style="font-size:12px;color:var(--brown)">Đã sửa danh mục item?</span>
           <button onclick="renderChiResults(window._chiParsed)" style="font-family:inherit;font-size:12px;padding:6px 16px;background:var(--gold);color:var(--brown);border:none;border-radius:6px;cursor:pointer;font-weight:700;white-space:nowrap">🔄 Cập nhật nhóm</button>
         </div>
         <div id="chi-xlsx-results" style="margin-top:10px;max-height:600px;overflow-y:auto"></div>
@@ -2916,6 +2916,7 @@ async function analyzeChiXlsx(){
 }
 function clearChiXlsx(){
   chiXlsxFile=null; chiXlsxPendingTx=[]; window._chiParsed=null;
+  const _ab=document.getElementById('chi-apply-bar-fixed'); if(_ab) _ab.style.display='none';
   document.getElementById('chi-xlsx-results').innerHTML='';
   document.getElementById('chi-xlsx-confirm-bar').style.display='none';
   document.getElementById('chi-xlsx-file-info').style.display='none';
@@ -3066,9 +3067,7 @@ function renderChiResults(parsed){
   container.innerHTML = html;
   window._chiParsed = parsed;
   rebuildChiTx();
-  // Ẩn nút apply sau re-render (chưa có thay đổi mới)
-  const applyBar = document.getElementById('chi-apply-bar-fixed');
-  if(applyBar) applyBar.style.display='none';
+
   document.getElementById('chi-xlsx-confirm-summary').textContent = `Tìm thấy ${totalCats} danh mục chi. Kiểm tra cửa hàng và số liệu trước khi lưu.`;
   document.getElementById('chi-xlsx-confirm-bar').style.display = totalCats ? 'block' : 'none';
 }
@@ -3109,8 +3108,7 @@ function updateChiItem(itemId, field, value){
       else if(field === 'category'){
         tx.category = value;
         // Hiện nút cập nhật cố định ở đầu results
-        const applyBar = document.getElementById('chi-apply-bar-fixed');
-        if(applyBar) applyBar.style.display='flex';
+
       }
     });
   });
