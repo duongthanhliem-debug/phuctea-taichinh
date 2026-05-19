@@ -3017,7 +3017,10 @@ function renderChiResults(parsed){
         const k = tx.category;
         if(!byCat[k]) byCat[k]={total:0,items:[]};
         byCat[k].total+=tx.amount;
-        byCat[k].items.push({...tx, _globalIdx: si+'_'+mk+'_'+tIdx});
+        // Gán _itemId lên object GỐC (không spread) để updateChiItem tìm được
+        const itemId = `chiitem-${si}-${mk}-${k.replace(/[^a-z0-9]/gi,'_')}-${tIdx}`;
+        tx._itemId = itemId;
+        byCat[k].items.push(tx); // giữ reference gốc
       });
       html += `<div style="background:var(--gold-l);border-radius:var(--rs);padding:10px;margin-bottom:8px">
         <div style="font-size:12px;font-weight:700;color:var(--brown);margin-bottom:8px">
@@ -3042,7 +3045,7 @@ function renderChiResults(parsed){
           </div>
           <div id="${expandId}" style="display:none;padding:6px 10px 8px;background:var(--gray-l)">`;
         g.items.forEach((tx, iIdx) => {
-          const itemId = `chiitem-${si}-${mk}-${cat.replace(/[^a-z0-9]/gi,'_')}-${iIdx}`;
+          const itemId = tx._itemId; // đã được gán ở trên, dùng trực tiếp
           const catOpts = CHI_CATEGORIES
             .map(c=>`<option value="${c}"${c===tx.category?' selected':''}>${c}</option>`).join('');
           html += `<div style="padding:7px 0;border-bottom:1px solid var(--border);display:grid;gap:4px">
@@ -3055,8 +3058,6 @@ function renderChiResults(parsed){
             </select>
             <input type="text" value="${(tx.note||tx._colG||'').replace(/"/g,'&quot;')}" placeholder="Ghi chú..." style="width:100%;font-family:inherit;font-size:11px;padding:4px 6px;border:1px solid var(--border);border-radius:4px" onchange="updateChiItem('${itemId}','note',this.value)">
           </div>`;
-          // Store item reference
-          tx._itemId = itemId;
         });
         html += `</div></div>`;
       });
