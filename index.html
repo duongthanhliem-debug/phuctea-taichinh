@@ -3438,70 +3438,153 @@ async function generatePLPDFBase64(sid, m, y){
   if(!s||!s.rev) throw new Error('No data');
   const storeInfo=ST.find(x=>x.id===sid)||{name:sid};
   const period=(m?'Tháng '+m+'/':'')+y;
-  const pct=v=>s.rev>0?Math.round(v/s.rev*100)+'%':'—';
+  const pct=(v,base)=>(base||s.rev)>0?Math.round(v/(base||s.rev)*100)+'%':'—';
   const col=s.net>=0?'#2D8248':'#E53E3E';
+  const exportDate=new Date().toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'});
+
+  // Tách đồ ăn vặt vs đồ uống
+  const FOOD_KEY='Nhập đồ ăn vặt';
+  const foodCogs=s.cocat[FOOD_KEY]||0;
+  const foodRev=s.rcat[FOOD_KEY]||0;
+  const drinkRev=s.rev-foodRev;
+  const drinkCogs=s.cogs-foodCogs;
+  const drinkGross=drinkRev-drinkCogs;
+
+  // So sánh tháng trước
+  const mPrev=m?String(parseInt(m)-1||12).padStart(2,'0'):'';
+  const yPrev=m&&parseInt(m)===1?String(parseInt(y)-1):y;
+  const ssPrev=agg(mPrev,yPrev);
+  const sPrev=ssPrev.find(x=>x.id===sid);
+  const hasPrev=sPrev&&sPrev.rev>0;
+  const diff=(cur,prev)=>prev>0?`<span style="font-size:10px;color:${cur>=prev?'#2D8248':'#E53E3E'};margin-left:4px">${cur>=prev?'▲':'▼'}${Math.abs(Math.round((cur-prev)/prev*100))}%</span>`:'';
 
   const makeRow=(label,val,pctVal,bg,bold)=>`
     <tr style="background:${bg||'#fff'}">
-      <td style="padding:9px 13px;font-weight:${bold?700:400};color:${bold?'#3D2B1F':'#555'}">${label}</td>
-      <td style="padding:9px 13px;text-align:right;font-weight:${bold?700:400}">${val}</td>
-      <td style="padding:9px 13px;text-align:right;color:#718096">${pctVal}</td>
+      <td style="padding:8px 12px;font-weight:${bold?700:400};color:${bold?'#3D2B1F':'#444'};font-size:13px">${label}</td>
+      <td style="padding:8px 12px;text-align:right;font-weight:${bold?700:400};font-size:13px">${val}</td>
+      <td style="padding:8px 12px;text-align:right;color:#718096;font-size:12px">${pctVal}</td>
     </tr>`;
 
   let revRows='', cogsRows='', opexRows='';
-  Object.entries(s.rcat).forEach(([k,v])=>{if(v)revRows+=makeRow('&nbsp;&nbsp;'+k,fvnd(v),pct(v));});
+  // Doanh thu: đồ uống trước, đồ ăn vặt sau
+  Object.entries(s.rcat).forEach(([k,v])=>{
+    if(v&&k!==FOOD_KEY) revRows+=makeRow('&nbsp;&nbsp;'+k,fvnd(v),pct(v));
+  });
+  if(foodRev) revRows+=makeRow('&nbsp;&nbsp;'+FOOD_KEY+' 🍿',fvnd(foodRev),pct(foodRev),'#FFF9F0');
   Object.entries(s.cocat).forEach(([k,v])=>{if(v)cogsRows+=makeRow('&nbsp;&nbsp;'+k,fvnd(v),pct(v));});
   Object.entries(s.ocat).forEach(([k,v])=>{if(v)opexRows+=makeRow('&nbsp;&nbsp;'+k,fvnd(v),pct(v));});
 
-  const content=`<div style="font-family:'Be Vietnam Pro',Arial;padding:40px;color:#3D2B1F">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:30px;border-bottom:3px solid #F5A623;padding-bottom:20px">
-      <div>
-        <h1 style="font-size:24px;margin:0">BÁO CÁO P&L — ${storeInfo.name}</h1>
-        <div style="font-size:14px;color:#718096;margin-top:5px">Kỳ báo cáo: ${period} · Xuất ngày: ${new Date().toLocaleDateString('vi-VN')}</div>
+  const content=`<div style="font-family:'Be Vietnam Pro',Arial,sans-serif;padding:32px 36px;color:#3D2B1F;max-width:780px;margin:0 auto">
+
+    <!-- HEADER -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;border-bottom:3px solid #F5A623;padding-bottom:18px">
+      <div style="display:flex;align-items:center;gap:14px">
+        <img src="logo4.png" style="height:52px;width:auto" onerror="this.style.display='none'">
+        <div>
+          <div style="font-size:20px;font-weight:700;color:#3D2B1F">${storeInfo.name}</div>
+          <div style="font-size:12px;color:#718096;margin-top:2px">Báo cáo tài chính · ${period} · Xuất ngày ${exportDate}</div>
+          ${storeInfo.owner?`<div style="font-size:12px;color:#9C6B47">Chủ quán: ${storeInfo.owner}</div>`:''}
+        </div>
       </div>
       <div style="text-align:right">
-        <div style="font-weight:700;color:#F5A623;font-size:18px">Phúc Tea</div>
-        <div style="font-size:12px;color:#718096">Financial Report</div>
+        <div style="font-size:13px;font-weight:700;color:#F5A623">PHÚC TEA P&L HUB</div>
+        <div style="font-size:11px;color:#9C6B47">Financial Report</div>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:15px;margin-bottom:30px">
-      <div style="background:#FDF3E3;padding:15px;border-radius:10px;text-align:center">
-        <div style="font-size:11px;color:#718096;text-transform:uppercase">Doanh thu</div>
-        <div style="font-size:18px;font-weight:700;color:#2D8248;margin-top:5px">${fvnd(s.rev)}</div>
+
+    <!-- KPI CARDS -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">
+      <div style="background:#E8F5E9;padding:14px;border-radius:10px;text-align:center;border-left:4px solid #2D8248">
+        <div style="font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.5px">💰 Doanh thu</div>
+        <div style="font-size:17px;font-weight:700;color:#2D8248;margin-top:4px">${fvnd(s.rev)}</div>
+        ${hasPrev?diff(s.rev,sPrev.rev):''}
       </div>
-      <div style="background:#FAF7F2;padding:15px;border-radius:10px;text-align:center">
-        <div style="font-size:11px;color:#718096;text-transform:uppercase">Lợi nhuận ròng</div>
-        <div style="font-size:18px;font-weight:700;color:${col};margin-top:5px">${s.net>=0?'+':''}${fvnd(s.net)}</div>
+      <div style="background:${s.net>=0?'#E8F5E9':'#FFF5F5'};padding:14px;border-radius:10px;text-align:center;border-left:4px solid ${col}">
+        <div style="font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.5px">📈 Lợi nhuận</div>
+        <div style="font-size:17px;font-weight:700;color:${col};margin-top:4px">${s.net>=0?'+':''}${fvnd(s.net)}</div>
+        ${hasPrev?diff(s.net,sPrev.net):''}
       </div>
-      <div style="background:#FDF3E3;padding:15px;border-radius:10px;text-align:center">
-        <div style="font-size:11px;color:#718096;text-transform:uppercase">Tỷ suất LN</div>
-        <div style="font-size:18px;font-weight:700;color:${col};margin-top:5px">${s.margin}%</div>
+      <div style="background:${s.margin>=9?'#E8F5E9':'#FFF9F0'};padding:14px;border-radius:10px;text-align:center;border-left:4px solid ${s.margin>=9?'#2D8248':'#F5A623'}">
+        <div style="font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.5px">🎯 Tỷ suất LN</div>
+        <div style="font-size:17px;font-weight:700;color:${col};margin-top:4px">${s.margin}%</div>
+        <div style="font-size:10px;color:#9C6B47">Mục tiêu: 9,7%</div>
       </div>
-      <div style="background:#FAF7F2;padding:15px;border-radius:10px;text-align:center">
-        <div style="font-size:11px;color:#718096;text-transform:uppercase">CP Nguyên liệu</div>
-        <div style="font-size:18px;font-weight:700;margin-top:5px">${s.cogsp}%</div>
+      <div style="background:${s.cogsp<=35?'#E8F5E9':'#FFF5F5'};padding:14px;border-radius:10px;text-align:center;border-left:4px solid ${s.cogsp<=35?'#2D8248':'#E53E3E'}">
+        <div style="font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.5px">📦 CP Nguyên liệu</div>
+        <div style="font-size:17px;font-weight:700;margin-top:4px;color:${s.cogsp<=35?'#2D8248':'#E53E3E'}">${s.cogsp}%</div>
+        <div style="font-size:10px;color:#9C6B47">Ngưỡng an toàn: ≤35%</div>
       </div>
     </div>
-    <table style="width:100%;border-collapse:collapse;font-size:14px">
+
+    <!-- SO SÁNH ĐỒ UỐNG vs ĐỒ ĂN VẶT -->
+    ${foodRev>0?`<div style="margin-bottom:24px">
+      <div style="font-size:13px;font-weight:700;color:#3D2B1F;margin-bottom:10px;padding:8px 12px;background:#FDF3E3;border-radius:6px">🧋 SO SÁNH ĐỒ UỐNG vs ĐỒ ĂN VẶT 🍿</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="background:#3D2B1F;color:#F5A623">
+          <th style="padding:8px 12px;text-align:left">Hạng mục</th>
+          <th style="padding:8px 12px;text-align:right">Đồ uống</th>
+          <th style="padding:8px 12px;text-align:right">Đồ ăn vặt 🍿</th>
+        </tr></thead>
+        <tbody>
+          <tr style="background:#F7FFF8"><td style="padding:7px 12px">Doanh thu</td><td style="text-align:right;padding:7px 12px;font-weight:600">${fvnd(drinkRev)}</td><td style="text-align:right;padding:7px 12px;font-weight:600">${fvnd(foodRev)}</td></tr>
+          <tr style="background:#fff"><td style="padding:7px 12px">Chi phí vốn</td><td style="text-align:right;padding:7px 12px;color:#E53E3E">${fvnd(drinkCogs)}</td><td style="text-align:right;padding:7px 12px;color:#E53E3E">${fvnd(foodCogs)}</td></tr>
+          <tr style="background:#FDF3E3;font-weight:700"><td style="padding:7px 12px">Lãi gộp</td><td style="text-align:right;padding:7px 12px;color:${drinkGross>=0?'#2D8248':'#E53E3E'}">${fvnd(drinkGross)} (${drinkRev>0?Math.round(drinkGross/drinkRev*100):0}%)</td><td style="text-align:right;padding:7px 12px;color:${(foodRev-foodCogs)>=0?'#2D8248':'#E53E3E'}">${fvnd(foodRev-foodCogs)} (${foodRev>0?Math.round((foodRev-foodCogs)/foodRev*100):0}%)</td></tr>
+        </tbody>
+      </table>
+    </div>`:''}
+
+    <!-- BẢNG P&L CHI TIẾT -->
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
       <thead style="background:#3D2B1F;color:#F5A623">
-        <tr><th style="padding:12px;text-align:left">HẠNG MỤC</th><th style="padding:12px;text-align:right">SỐ TIỀN (VNĐ)</th><th style="padding:12px;text-align:right">% DT</th></tr>
+        <tr>
+          <th style="padding:11px 12px;text-align:left">HẠNG MỤC</th>
+          <th style="padding:11px 12px;text-align:right">SỐ TIỀN</th>
+          <th style="padding:11px 12px;text-align:right">% DT</th>
+          ${hasPrev?'<th style="padding:11px 12px;text-align:right;font-size:11px">Tháng trước</th>':''}
+        </tr>
       </thead>
       <tbody>
-        <tr style="background:#FAF7F2;font-weight:700"><td colspan="3" style="padding:10px">A — DOANH THU</td></tr>
+        <tr style="background:#F0F7FF;font-weight:700"><td colspan="${hasPrev?4:3}" style="padding:9px 12px;font-size:12px;letter-spacing:.5px">A — DOANH THU</td></tr>
         ${revRows}
-        <tr style="background:#FDF3E3;font-weight:700"><td style="padding:10px">TỔNG DOANH THU</td><td style="text-align:right;padding:10px">${fvnd(s.rev)}</td><td style="text-align:right;padding:10px">100%</td></tr>
-        <tr style="background:#FAF7F2;font-weight:700"><td colspan="3" style="padding:10px">B — CHI PHÍ VỐN BÁN HÀNG (COGS)</td></tr>
+        <tr style="background:#E8F5E9;font-weight:700">
+          <td style="padding:9px 12px">TỔNG DOANH THU</td>
+          <td style="text-align:right;padding:9px 12px;color:#2D8248">${fvnd(s.rev)}</td>
+          <td style="text-align:right;padding:9px 12px">100%</td>
+          ${hasPrev?`<td style="text-align:right;padding:9px 12px;color:#718096;font-size:12px">${fvnd(sPrev.rev)}</td>`:''}
+        </tr>
+        <tr style="background:#FFF5F0;font-weight:700"><td colspan="${hasPrev?4:3}" style="padding:9px 12px;font-size:12px;letter-spacing:.5px">B — CHI PHÍ VỐN BÁN HÀNG (COGS)</td></tr>
         ${cogsRows}
-        <tr style="background:#FDF3E3;font-weight:700"><td style="padding:10px">TỔNG CPVBH</td><td style="text-align:right;padding:10px;color:#E53E3E">${fvnd(s.cogs)}</td><td style="text-align:right;padding:10px;color:#718096">${pct(s.cogs)}</td></tr>
-        <tr style="background:#FDF3E3;font-weight:700;border-top:2px solid #3D2B1F"><td style="padding:10px">(1) LỢI NHUẬN GỘP</td><td style="text-align:right;padding:10px;color:${s.gross>=0?'#2D8248':'#E53E3E'}">${s.gross>=0?'+':''}${fvnd(s.gross)}</td><td style="text-align:right;padding:10px">${pct(s.gross)}</td></tr>
-        <tr style="background:#FAF7F2;font-weight:700"><td colspan="3" style="padding:10px">C — CHI PHÍ VẬN HÀNH</td></tr>
+        <tr style="background:#FFE8E0;font-weight:700">
+          <td style="padding:9px 12px">TỔNG CPVBH</td>
+          <td style="text-align:right;padding:9px 12px;color:#E53E3E">${fvnd(s.cogs)}</td>
+          <td style="text-align:right;padding:9px 12px;color:#718096">${pct(s.cogs)}</td>
+          ${hasPrev?`<td style="text-align:right;padding:9px 12px;color:#718096;font-size:12px">${fvnd(sPrev.cogs)}</td>`:''}
+        </tr>
+        <tr style="background:#FDF3E3;font-weight:700;border-top:2px solid #3D2B1F">
+          <td style="padding:9px 12px">(1) LỢI NHUẬN GỘP</td>
+          <td style="text-align:right;padding:9px 12px;color:${s.gross>=0?'#2D8248':'#E53E3E'}">${s.gross>=0?'+':''}${fvnd(s.gross)}</td>
+          <td style="text-align:right;padding:9px 12px">${pct(s.gross)}</td>
+          ${hasPrev?`<td style="text-align:right;padding:9px 12px;color:#718096;font-size:12px">${sPrev.gross>=0?'+':''}${fvnd(sPrev.gross)}</td>`:''}
+        </tr>
+        <tr style="background:#F5F0FF;font-weight:700"><td colspan="${hasPrev?4:3}" style="padding:9px 12px;font-size:12px;letter-spacing:.5px">C — CHI PHÍ VẬN HÀNH</td></tr>
         ${opexRows}
-        <tr style="background:#FDF3E3;font-weight:700"><td style="padding:10px">TỔNG CPVH</td><td style="text-align:right;padding:10px;color:#E53E3E">${fvnd(s.opex)}</td><td style="text-align:right;padding:10px;color:#718096">${pct(s.opex)}</td></tr>
-        <tr style="background:#3D2B1F;color:#fff;font-weight:700"><td style="padding:12px">LỢI NHUẬN RÒNG</td><td style="text-align:right;padding:12px;color:#F5A623;font-size:18px">${s.net>=0?'+':''}${fvnd(s.net)}</td><td style="text-align:right;padding:12px;color:#F5A623">${s.margin}%</td></tr>
+        <tr style="background:#EDE0FF;font-weight:700">
+          <td style="padding:9px 12px">TỔNG CPVH</td>
+          <td style="text-align:right;padding:9px 12px;color:#E53E3E">${fvnd(s.opex)}</td>
+          <td style="text-align:right;padding:9px 12px;color:#718096">${pct(s.opex)}</td>
+          ${hasPrev?`<td style="text-align:right;padding:9px 12px;color:#718096;font-size:12px">${fvnd(sPrev.opex)}</td>`:''}
+        </tr>
+        <tr style="background:#3D2B1F;color:#fff;font-weight:700">
+          <td style="padding:12px">🏆 LỢI NHUẬN RÒNG</td>
+          <td style="text-align:right;padding:12px;color:#F5A623;font-size:17px">${s.net>=0?'+':''}${fvnd(s.net)}</td>
+          <td style="text-align:right;padding:12px;color:#F5A623">${s.margin}%</td>
+          ${hasPrev?`<td style="text-align:right;padding:12px;color:#9C6B47;font-size:12px">${sPrev.net>=0?'+':''}${fvnd(sPrev.net)}</td>`:''}
+        </tr>
       </tbody>
     </table>
-    <div style="margin-top:40px;border-top:1px solid #E8E0D4;padding-top:20px;text-align:center;font-size:12px;color:#718096">
-      © ${y} Phúc Tea · Hệ thống quản trị P&L Hub · Báo cáo được tạo tự động
+
+    <div style="margin-top:28px;border-top:1px solid #E8E0D4;padding-top:16px;text-align:center;font-size:11px;color:#9C6B47">
+      Phúc Tea · P&L Hub · ${period} · Phân tích bởi hệ thống tự động · Dữ liệu từ sheet database
     </div>
   </div>`;
 
