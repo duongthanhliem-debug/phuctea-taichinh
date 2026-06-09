@@ -1366,13 +1366,12 @@ function fillSels(){
     const cur=el.value;
     const m=document.getElementById(mId)?.value||'';
     const y=document.getElementById(yId)?.value||'';
-    // Normalize tháng: TX.month lưu "05", dropdown value có thể "5" hoặc "05"
     const mNorm = m ? m.padStart(2,'0') : '';
     let filtered = ST;
     if(mNorm&&y){
       const hasData=new Set(TX.filter(t=>t.month===mNorm&&t.year===y).map(t=>t.store));
       filtered=ST.filter(s=>hasData.has(s.id));
-      if(!filtered.length) filtered=ST; // fallback hiện tất cả nếu không có data
+      if(!filtered.length) filtered=ST;
     }
     const opts=filtered.map(s=>`<option value="${s.id}">${s.name||s.id}</option>`).join('');
     el.innerHTML='<option value="">-- Cửa hàng --</option>'+opts;
@@ -1585,8 +1584,8 @@ function rPL(){
   }
   const ss=agg(m,y);
   const s=ss.find(x=>x.id===sid);
-  if(!s||!s.rev){document.getElementById('plw').innerHTML='<div class="empty2">📭<br><br>Không có dữ liệu kỳ này</div>';return;}
-  const pct=v=>s.rev>0?Math.round(v/s.rev*100)+'%':'—';
+  if(!s||(!s.rev&&!s.cogs&&!s.opex)){document.getElementById('plw').innerHTML='<div class="empty2">📭<br><br>Không có dữ liệu kỳ này</div>';return;}
+  const pct=v=>(s.rev||s.cogs||s.opex||1)>0?Math.round(v/(s.rev||s.cogs||s.opex||1)*100)+'%':'—';
   let h='';
   h+=`<div><div class="plh plhm">A — DOANH THU <span>${fvnd(s.rev)}</span></div><div class="plb">`;
   Object.entries(s.rcat).forEach(([k,v])=>{if(v)h+=`<div class="plr"><span class="pll">${k}</span><div style="display:flex;gap:12px"><span class="plp">${pct(v)}</span><span class="plv">${fvnd(v)}</span></div></div>`;});
@@ -3435,7 +3434,7 @@ function clearXlsx(){
 async function generatePLPDFBase64(sid, m, y){
   const ss=agg(m,y);
   const s=ss.find(x=>x.id===sid);
-  if(!s||!s.rev) throw new Error('No data');
+  if(!s||(!s.rev&&!s.cogs&&!s.opex)) throw new Error('No data');
   const storeInfo=ST.find(x=>x.id===sid)||{name:sid};
   const period=(m?'Tháng '+m+'/':'')+y;
   const pct=(v,base)=>(base||s.rev)>0?Math.round(v/(base||s.rev)*100)+'%':'—';
